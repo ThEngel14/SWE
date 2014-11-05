@@ -31,11 +31,13 @@
 #include <string>
 #include <iostream>
 
-#ifndef CUDA
-#include "blocks/SWE_WavePropagationBlock.hh"
-#else
-#include "blocks/cuda/SWE_WavePropagationBlockCuda.hh"
-#endif
+
+#include "examples/swe_dimensionalsplitting.hh"
+//#ifndef CUDA
+//#include "blocks/SWE_WavePropagationBlock.hh"
+//#else
+//#include "blocks/cuda/SWE_WavePropagationBlockCuda.hh"
+//#endif
 
 #ifdef WRITENETCDF
 #include "writer/NetCdfWriter.hh"
@@ -152,7 +154,7 @@ int main( int argc, char** argv ) {
 
   // create a single wave propagation block
   #ifndef CUDA
-  SWE_WavePropagationBlock l_wavePropgationBlock(l_nX,l_nY,l_dX,l_dY);
+  swe_dimensionalsplitting l_wavePropgationBlock(l_nX,l_nY,l_dX,l_dY);
   #else
   SWE_WavePropagationBlockCuda l_wavePropgationBlock(l_nX,l_nY,l_dX,l_dY);
   #endif
