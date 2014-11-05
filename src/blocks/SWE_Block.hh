@@ -110,7 +110,7 @@ class SWE_Block1D;
  * Please refer to the documentation of these classes for more details on the 
  * model and on the parallelisation approach.
  */
-class SWE_Block {
+class SWE_Block{
 
   public:
   // object methods
