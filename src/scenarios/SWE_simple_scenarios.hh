@@ -44,7 +44,7 @@ class SWE_RadialDamBreakScenario : public SWE_Scenario {
     float getBathymetry(float x, float y) {
        
       // missing realistic values for the requested Bathymetry in the RadialDamBreakScenario
-      if(x > &&  x <  && y > && y < )
+      if(x > 10 &&  x < 20 && y >  10 && y < 20)
           return 5.0f;
       else 
           return 0.f;
