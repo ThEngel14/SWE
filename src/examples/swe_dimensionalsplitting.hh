@@ -30,9 +30,18 @@ private:
 	    Float2D hvBelow;
 	    Float2D hvAbove;
 public:
+
 	swe_dimensionalsplitting(int l_nx, int l_ny, float l_dx, float l_dy);
+
+	/**
+	 * Compute netUpdates for the given input-values using x-and y-sweep
+	 */
 	void computeNumericalFluxes();
 
+	/**
+	 * Apply the result the vertical and horizontal net-updates
+	 * @param dt time step for the update
+	 */
 	void updateUnknowns(float dt);
 
 };

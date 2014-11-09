@@ -1,5 +1,5 @@
 /*
- * swedimensionalsplitting.h
+ * swedimensionalsplitting.cpp
  *
  *  Created on: Nov 5, 2014
  *      Author: kyu
@@ -8,6 +8,8 @@
 #ifndef SWEDIMENSIONALSPLITTING_CPP_
 #define SWEDIMENSIONALSPLITTING_CPP_
 
+#include <cassert>
+#include <string>
 #include <limits>
 #include "swe_dimensionalsplitting.hh"
 
@@ -31,6 +33,7 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
 
 		float maxWaveSpeed = (float) 0.0f;
 
+		//x-sweep (vertical edges)
 		for (int i = 1; i < nx+2; i++) {
 	    	for (int j=1; j < ny+1; ++j) {
 	    		float maxEdgeSpeed;
@@ -48,6 +51,7 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
 	    	}
 	    }
 
+		//y-sweep (horizontal edges)
 	    for (int i = 1; i < nx+1; i++) {
    			for (int j=1; j < ny+2; ++j) {
    				float maxEdgeSpeed;
@@ -66,9 +70,15 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
    		}
  		if (maxWaveSpeed > zeroTol) {
 	    	maxTimestep = 0.4f * std::min (dx / maxWaveSpeed, dy / maxWaveSpeed);
+#ifndef NDEBUG
+			//Check CFL-condition for y-sweep
+	    	if(maxTimestep >= 0.5 * dy/maxWaveSpeed){
+	    		std::cerr << "CFL-condition for y-sweep is not satisfied" << std::endl;
+	    	}
+#endif // NDEBUG
 	    } else {
-	    	//might happen in dry cells
-	    	maxTimestep = std::numeric_limits<float>::max ();
+	    	//division by zero (may happen in dry cells)
+	    	maxTimestep = std::numeric_limits<float>::max();
 	    }
 	};
 
@@ -80,9 +90,9 @@ void swe_dimensionalsplitting::updateUnknowns(float dt){
 	   			hu[i][j] -= dt / dx * (huRight[i - 1][j - 1] + huLeft[i][j - 1]);
 	   			hv[i][j] -= dt / dy * (hvAbove[i - 1][j - 1] + hvBelow[i - 1][j]);
 
-	   			if (h[i][j] < dryTol) {
+	   			if (h[i][j] < 0) {
 	   				h[i][j] = hu[i][j] = hv[i][j] = 0.0f;
-	   			} else if (h[i][j] < 0.1f)
+	   			} else if (h[i][j] < dryTol)
 	   				hu[i][j] = hv[i][j] = 0.0f;
 	   			}
 	   		}
