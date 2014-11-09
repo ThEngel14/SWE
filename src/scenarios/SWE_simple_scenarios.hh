@@ -41,26 +41,46 @@ class SWE_RadialDamBreakScenario : public SWE_Scenario {
 
   public:
 
+	/**
+	 * @param x x-coordinate
+	 * @param y y-coordinate
+	 *
+	 * @return the bathymetry at the given point (x,y)
+	 */
     float getBathymetry(float x, float y) {
        
       // missing realistic values for the requested Bathymetry in the RadialDamBreakScenario
-      if(x > 10 &&  x < 20 && y >  10 && y < 20)
-          return 5.0f;
-      else 
+      //if(x > 10 &&  x < 20 && y >  10 && y < 20)
+      //    return 5.0f;
+      //else
           return 0.f;
 
 
     };
 
+    /**
+	 * Get the water height at a specific location.
+	 *
+	 * @param x position relative to the origin of the bathymetry grid in x-direction
+	 * @param y position relative to the origin of the bathymetry grid in y-direction
+	 *
+	 * @return water height (before the initial displacement)
+	 */
     float getWaterHeight(float x, float y) { 
        return ( sqrt( (x-500.f)*(x-500.f) + (y-500.f)*(y-500.f) ) < 100.f ) ? 15.f: 10.0f;
     };
 
 	virtual float endSimulation() { return (float) 15; };
 
+	/**
+	 * @param edge BoundaryEdge to request the BoundaryType
+	 *
+	 * @return the BoundaryType for the given edge
+	 */
     virtual BoundaryType getBoundaryType(BoundaryEdge edge) { return OUTFLOW; };
 
-    /** Get the boundary positions
+    /**
+     * Get the boundary positions
      *
      * @param i_edge which edge
      * @return value in the corresponding dimension
@@ -85,12 +105,23 @@ class SWE_BathymetryDamBreakScenario : public SWE_Scenario {
 
   public:
 
+	/**
+	 * @param x x-coordinate
+	 * @param y y-coordinate
+	 *
+	 * @return the bathymetry at the given point (x,y)
+	 */
     float getBathymetry(float x, float y) { 
        return ( std::sqrt( (x-500.f)*(x-500.f) + (y-500.f)*(y-500.f) ) < 50.f ) ? -255.f: -260.f;
     };
     
 	virtual float endSimulation() { return (float) 15; };
 
+	/**
+	 * @param edge BoundaryEdge to request the BoundaryType
+	 *
+	 * @return the BoundaryType for the given edge
+	 */
     virtual BoundaryType getBoundaryType(BoundaryEdge edge) { return OUTFLOW; };
 
     /** Get the boundary positions
@@ -132,9 +163,24 @@ class SWE_SeaAtRestScenario : public SWE_Scenario {
 
   public:
 
+	/**
+	 * Get the water height at a specific location.
+	 *
+	 * @param x position relative to the origin of the bathymetry grid in x-direction
+	 * @param y position relative to the origin of the bathymetry grid in y-direction
+	 *
+	 * @return water height (before the initial displacement)
+	 */
     float getWaterHeight(float x, float y) { 
        return ( sqrt( (x-0.5)*(x-0.5) + (y-0.5)*(y-0.5) ) < 0.1f ) ? 9.9f: 10.0f;
     };
+
+    /**
+     * @param x position relative to the origin of the bathymetry grid in x-direction
+     * @param y position relative to the origin of the bathymetry grid in y-direction
+     *
+     * @return bathymetry value for the location
+     */
     float getBathymetry(float x, float y) { 
        return ( sqrt( (x-0.5)*(x-0.5) + (y-0.5)*(y-0.5) ) < 0.1f ) ? 0.1f: 0.0f;
     };
@@ -149,10 +195,24 @@ class SWE_SplashingPoolScenario : public SWE_Scenario {
 
   public:
 
+	/**
+	 * @param x position relative to the origin of the bathymetry grid in x-direction
+	 * @param y position relative to the origin of the bathymetry grid in y-direction
+	 *
+	 * @return bathymetry value for the location
+	 */
     float getBathymetry(float x, float y) {
        return -250.f;
     };
 
+    /**
+	 * Get the water height at a specific location.
+	 *
+	 * @param x position relative to the origin of the bathymetry grid in x-direction
+	 * @param y position relative to the origin of the bathymetry grid in y-direction
+	 *
+	 * @return water height (before the initial displacement)
+	 */
     float getWaterHeight(float x, float y) {
     	return 250.0f+(5.0f-(x+y)/200);
     };
@@ -187,6 +247,14 @@ class SWE_SplashingConeScenario : public SWE_Scenario {
 
   public:
 
+	/**
+	 * Get the water height at a specific location.
+	 *
+	 * @param x position relative to the origin of the bathymetry grid in x-direction
+	 * @param y position relative to the origin of the bathymetry grid in y-direction
+	 *
+	 * @return water height (before the initial displacement)
+	 */
     float getWaterHeight(float x, float y) { 
        float r = sqrt( (x-0.5f)*(x-0.5f) + (y-0.5f)*(y-0.5f) );
        float h = 4.0f-4.5f*(r/0.5f);
@@ -196,6 +264,12 @@ class SWE_SplashingConeScenario : public SWE_Scenario {
        return (h>0.0f) ? h : 0.0f;
     };
 
+    /**
+	 * @param x position relative to the origin of the bathymetry grid in x-direction
+	 * @param y position relative to the origin of the bathymetry grid in y-direction
+	 *
+	 * @return bathymetry value for the location
+	 */
     float getBathymetry(float x, float y) { 
        float r = sqrt( (x-0.5f)*(x-0.5f) + (y-0.5f)*(y-0.5f) );
        return 1.0f+9.0f*( (r < 0.5f) ? r : 0.5f);
@@ -204,6 +278,11 @@ class SWE_SplashingConeScenario : public SWE_Scenario {
     float waterHeightAtRest() { return 4.0f; };
     float endSimulation() { return 0.5f; };
 
+    /**
+	 * @param edge BoundaryEdge to request the BoundaryType
+	 *
+	 * @return the BoundaryType for the given edge
+	 */
     virtual BoundaryType getBoundaryType(BoundaryEdge edge) { return OUTFLOW; };
 };
 

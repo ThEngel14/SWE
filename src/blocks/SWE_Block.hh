@@ -29,8 +29,8 @@
 #ifndef __SWE_BLOCK_HH
 #define __SWE_BLOCK_HH
 
-#include "tools/help.hh"
-#include "scenarios/SWE_Scenario.hh"
+#include "../tools/help.hh"
+#include "../scenarios/SWE_Scenario.hh"
 
 #include <iostream>
 #include <fstream>

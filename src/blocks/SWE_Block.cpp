@@ -27,7 +27,7 @@
  */
 
 #include "SWE_Block.hh"
-#include "tools/help.hh"
+#include "../tools/help.hh"
 
 #include <cmath>
 #include <iostream>
