@@ -56,34 +56,44 @@ public:
 		dimSplitting.computeNumericalFluxes();
 		dimSplitting.updateUnknowns(dimSplitting.getMaxTimestep());
 
-		float h = dimSplitting.getWaterHeight();
-		float hu = dimSplitting.getDischarge_hu();
-		float hv = dimSplitting.getDischarge_hv();
+		float *h;
+		float *hu;
+		float *hv;
 
-		float maxSpeed;
-		float uphl[3], uphr[3], uphul[3], uphur[3];
+		h = dimSplitting.getWaterHeight();
+		hu = dimSplitting.getDischarge_hu();
+		hv = dimSplitting.getDischarge_hv();
+
+		float maxSpeed = 0.0f;
+		float uphl[3];
+		float uphr[3];
+		float uphul[3];
+		float uphur[3];
 
 		// x-sweep
 		for(int i = 0; i < 2; i++) {
 			for(int k = 0; k < 3; k++) {
-				fwave.computeNetUpdates(getWaterHeight(i, k), getWaterHeight(i+1, k), 0.0f, 0.0f, uphl[k], uphr[k], uphul[k], uphur[k], maxSpeed);
+				fwave.computeNetUpdates(getWaterHeight(i, k), getWaterHeight(i+1, k), zero, zero, uphl[k], uphr[k], uphul[k], uphur[k], maxSpeed);
 			}
 		}
 
 		// y-sweep
-		float up2hl[3], up2hr[3], up2hul[3], up2hur[3];
+		float up2hl[3];
+		float up2hr[3];
+		float up2hul[3];
+		float up2hur[3];
 		for(int i = 0; i < 2; i++) {
 			for(int k = 0; k < 3; k++) {
-				fwave.computeNetUpdates(getWaterHeight(k, i), getWaterHeight(k, i+1), 0.0f, 0.0f, uphl[k], uphr[k], uphul[k], uphur[k], maxSpeed);
+				fwave.computeNetUpdates(getWaterHeight(k, i), getWaterHeight(k, i+1), zero, zero, uphl[k], uphr[k], uphul[k], uphur[k], maxSpeed);
 			}
 		}
 
-		float h_res;
-		float hu_res;
-		float hv_res;
+		float h_res[3][3];
+		float hu_res[3][3];
+		float hv_res[3][3];
 		float dt = dimSplitting.getMaxTimestep();
-		float dx = dimSplitting.getNx();
-		float dy = dimSplitting.getNy();
+		float dx = dimSplitting.dx;
+		float dy = dimSplitting.dy;
 
 		for (int i = 1; i < 3; i++) {
 			for (int k = 1; k < 3; k++) {
