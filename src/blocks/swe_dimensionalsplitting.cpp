@@ -62,32 +62,26 @@ void swe_dimensionalsplitting::updateUnknowns(float dt){
 
 	//y-sweep (horizontal edges)
     for (int i = 1; i < nx+1; i++) {
-			for (int j=1; j < ny+2; ++j) {
-				float maxEdgeSpeed;
+		for (int j=1; j < ny+2; ++j) {
+			float maxEdgeSpeed;
 
-				fwave.computeNetUpdates (
-		    		h[i][j - 1], h[i][j],
-		    		hv[i][j - 1], hv[i][j],
-		    		b[i][j - 1], b[i][j],
-		    		hBelow[i - 1][j - 1], hAbove[i - 1][j - 1],
-		    		hvBelow[i - 1][j - 1], hvAbove[i - 1][j - 1],
-		    		maxEdgeSpeed
-		    	);
+			fwave.computeNetUpdates (
+		   		h[i][j - 1], h[i][j],
+		   		hv[i][j - 1], hv[i][j],
+		   		b[i][j - 1], b[i][j],
+		   		hBelow[i - 1][j - 1], hAbove[i - 1][j - 1],
+		   		hvBelow[i - 1][j - 1], hvAbove[i - 1][j - 1],
+		   		maxEdgeSpeed
+		   	);
 
 			    maxWaveSpeed = std::max(maxWaveSpeed, maxEdgeSpeed);
-			}
 		}
+    }
 
     for (int i = 1; i < nx+1; i++) {
     	for (int j=1; j < ny+2; j++) {
     		h[i][j] -= dt / dy * (hAbove[i-1][j - 1] + hBelow[i-1][j]);
     		hv[i][j] -= dt / dy * (hvAbove[i-1][j - 1] + hvBelow[i-1][j]);
-
-    		/*if (h[i][j] < 0) {
-    			h[i][j] = hu[i][j] = hv[i][j] = 0.0f;
-    		} else if (h[i][j] < dryTol){
-    			hu[i][j] = hv[i][j] = 0.0f;
-    		}*/
     	}
     }
 
