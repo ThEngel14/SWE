@@ -9,11 +9,11 @@
 #define SWEDIMENSIONALSPLITTING_HH_
 
 
-#include "../tools/help.hh"
-#include "../scenarios/SWE_Scenario.hh"
-#include "../blocks/SWE_Block.hh"
-#include "../solvers/FWave.hpp"
-#include "../scenarios/SWE_simple_scenarios.hh"
+#include "tools/help.hh"
+#include "scenarios/SWE_Scenario.hh"
+#include "blocks/SWE_Block.hh"
+#include "solvers/FWave.hpp"
+#include "scenarios/SWE_simple_scenarios.hh"
 
 class swe_dimensionalsplitting :public SWE_Block{
 private:
@@ -34,12 +34,12 @@ public:
 	swe_dimensionalsplitting(int l_nx, int l_ny, float l_dx, float l_dy);
 
 	/**
-	 * Compute netUpdates for the given input-values using x-and y-sweep
+	 * Not needed for this case.
 	 */
 	void computeNumericalFluxes();
 
 	/**
-	 * Apply the result the vertical and horizontal net-updates
+	 * Compute netUpdates for the given input-values using x-and y-sweep
 	 * @param dt time step for the update
 	 */
 	void updateUnknowns(float dt);

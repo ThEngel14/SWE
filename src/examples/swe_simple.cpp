@@ -32,7 +32,7 @@
 #include <iostream>
 
 
-#include "examples/swe_dimensionalsplitting.hh"
+#include "blocks/swe_dimensionalsplitting.hh"
 //#ifndef CUDA
 //#include "blocks/SWE_WavePropagationBlock.hh"
 //#else

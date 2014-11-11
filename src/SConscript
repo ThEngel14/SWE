@@ -40,7 +40,7 @@ if env['parallelization'] not in ['cuda', 'mpi_with_cuda']:
   elif env['solver'] == 'augriefun' or env['solver'] == 'fwavevec':
     sourceFiles = ['blocks/SWE_WaveAccumulationBlock.cpp']
   elif env['solver'] == 'fwave':
-    sourceFiles = ['examples/swe_dimensionalsplitting.cpp']
+    sourceFiles = ['blocks/swe_dimensionalsplitting.cpp']
   else:
     sourceFiles = ['blocks/SWE_WavePropagationBlock.cpp']
 
