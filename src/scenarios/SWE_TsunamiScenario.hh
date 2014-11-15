@@ -219,7 +219,7 @@ public:
 		readcloseNetcdf(ncDisplid, xDisplSize, yDisplSize, xDisplVals, yDisplVals, zDisplVals);
 
 		scaleAllVals();
-		cout << xDisplVals[xDisplSize-1]<<" "<<xBathVals[xBathSize-1];
+
 	};
 
 	float getWaterHeight(float x, float y){
@@ -257,9 +257,9 @@ public:
 	 * @return value in the corresponding dimension
 	 */
 	float getBoundaryPos(BoundaryEdge i_edge) {
-		int xboundary = (xBathSize/2) * std::round(xBathVals[xBathSize-1]*2/xBathSize);
+		int xboundary = (xBathSize/2) * std::floor( xBathSize / (xBathVals[xBathSize-1]*2) + 0.5f);
 										//compute conversionrate from dimension to meter
-		int yboundary = (yBathSize/2) * std::round(yBathVals[yBathSize-1]*2/yBathSize);
+		int yboundary = (yBathSize/2) * std::floor( yBathSize / (yBathVals[yBathSize-1]*2) + 0.5f);
 	    if ( i_edge == BND_LEFT )
 	      return (float)-xboundary * scale;
 	    else if ( i_edge == BND_RIGHT)
