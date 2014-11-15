@@ -33,6 +33,7 @@
 
 
 #include "blocks/swe_dimensionalsplitting.hh"
+#include "scenarios/SWE_Scenario.hh"
 //#ifndef CUDA
 //#include "blocks/SWE_WavePropagationBlock.hh"
 //#else
@@ -191,11 +192,19 @@ int main( int argc, char** argv ) {
   std::string l_fileName = generateBaseFileName(l_baseName,0,0);
   //boundary size of the ghost layers
   io::BoundarySize l_boundarySize = {{1, 1, 1, 1}};
+
+  //boundary type
+  BoundaryType l_boundaryType[] = {l_scenario.getBoundaryType(BND_TOP),
+		  	  	  	  	  	  	 l_scenario.getBoundaryType(BND_BOTTOM),
+		  	  	  	  	  	  	 l_scenario.getBoundaryType(BND_LEFT),
+		  	  	  	  	  	  	 l_scenario.getBoundaryType(BND_RIGHT)};
+
 #ifdef WRITENETCDF
   //construct a NetCdfWriter
   io::NetCdfWriter l_writer( l_fileName,
 		  l_wavePropgationBlock.getBathymetry(),
 		  l_boundarySize,
+		  l_boundaryType,
 		  l_nX, l_nY,
 		  l_dX, l_dY,
 		  l_originX, l_originY);

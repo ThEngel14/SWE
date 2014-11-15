@@ -49,6 +49,7 @@
 io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 		const Float2D &i_b,
 		const BoundarySize &i_boundarySize,
+		const enum BoundaryType *i_boundaryType,
 		int i_nX, int i_nY,
 		float i_dX, float i_dY,
 		float i_originX, float i_originY,
@@ -77,10 +78,11 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 #endif
 
 	//dimensions
-	int l_timeDim, l_xDim, l_yDim;
+	int l_timeDim, l_xDim, l_yDim, l_boundaryDim;
 	nc_def_dim(dataFile, "time", NC_UNLIMITED, &l_timeDim);
 	nc_def_dim(dataFile, "x", nX, &l_xDim);
 	nc_def_dim(dataFile, "y", nY, &l_yDim);
+	nc_def_dim(dataFile, "boundary", 4, &l_boundaryDim);
 
 	//variables (TODO: add rest of CF-1.5)
 	int l_xVar, l_yVar;
@@ -91,6 +93,10 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 
 	nc_def_var(dataFile, "x", NC_FLOAT, 1, &l_xDim, &l_xVar);
 	nc_def_var(dataFile, "y", NC_FLOAT, 1, &l_yDim, &l_yVar);
+
+	//Boundarys
+	int dimBoundary[] = {l_boundaryDim};
+	nc_def_var(dataFile, "Boundary", NC_INT, 1, dimBoundary, &boundaryVar);
 
 	//variables, fastest changing index is on the right (C syntax), will be mirrored by the library
 	int dims[] = {l_timeDim, l_yDim, l_xDim};
@@ -122,6 +128,20 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 
     	gridPosition += i_dY;
 	}
+
+	//setup boundary type
+	int boundary[4] = {0,0,0,0};
+	for(int i = 0; i < 4; i++) {
+		switch (i_boundaryType[i]) {
+		case OUTFLOW: boundary[i] = 1; break;
+		case WALL: boundary[i] = 2; break;
+		case INFLOW: boundary[i] = 3; break;
+		case CONNECT: boundary[i] = 4; break;
+		case PASSIVE: boundary[i] = 5; break;
+		}
+	}
+
+	nc_put_var_int(dataFile, boundaryVar, &boundary[0]);
 }
 
 /**
@@ -223,3 +243,4 @@ void io::NetCdfWriter::writeTimeStep( const Float2D &i_h,
 	if (flush > 0 && timeStep % flush == 0)
 		nc_sync(dataFile);
 }
+

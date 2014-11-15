@@ -46,6 +46,7 @@
 #endif
 
 #include "writer/Writer.hh"
+#include "scenarios/SWE_Scenario.hh"
 
 namespace io {
   class NetCdfWriter;
@@ -57,7 +58,7 @@ private:
     int dataFile;
 
     /** Variable ids */
-    int timeVar, hVar, huVar, hvVar, bVar;
+    int timeVar, hVar, huVar, hvVar, bVar, boundaryVar;
 
     /** Flush after every x write operation? */
     unsigned int flush;
@@ -75,6 +76,7 @@ private:
     NetCdfWriter(const std::string &i_fileName,
     			 const Float2D &i_b,
                  const BoundarySize &i_boundarySize,
+                 const enum BoundaryType *i_boundaryType,
                  int i_nX, int i_nY,
                  float i_dX, float i_dY,
                  float i_originX = 0., float i_originY = 0.,
