@@ -13,9 +13,9 @@
 class SWE_ArtificialTsunamiScenario: public SWE_Scenario {
 public:
 	SWE_ArtificialTsunamiScenario();
-	float getWaterHeight(float x, float y)
+	float getWaterHeight(float x, float y);
 
-	float getBathymetry(float x, float y)
+	float getBathymetry(float x, float y);
 
 };
 
