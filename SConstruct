@@ -90,7 +90,7 @@ vars.AddVariables(
 
   BoolVariable( 'openGL_instr', 'add instructions to openGL version (requires SDL_ttf)', False ),
 
-  BoolVariable( 'writeNetCDF', 'write output in the netCDF-format', False ),
+  BoolVariable( 'writeNetCDF', 'write output in the netCDF-format', True ),
 
   BoolVariable( 'asagi', 'use ASAGI', False ),
 
