@@ -22,6 +22,7 @@ private:
 	float *hu;
 	float *hv;
 	int* boundary;
+	int xDim, yDim;
 	/**
 	 * Print error message.
 	 */
@@ -43,7 +44,7 @@ public:
 		if(status != NC_NOERR){handle_error(status);}
 
 		// get Dimensions
-		int timeDim, xDim, yDim, boundaryDim;
+		int timeDim, boundaryDim;
 
 		status = nc_inq_dimlen(*ncid, 0, timeDim);
 		if (status != NC_NOERR) handle_error(status);
@@ -184,15 +185,21 @@ public:
 	};
 
 	/**
-	 * Get the boundary positions
-	 *
-	 * @param i_edge which edge
-	 * @return value in the corresponding dimension
-	 */
-	float getBoundaryPos(BoundaryEdge i_edge) {
-		//TODO
-		return 0;
-	};
+		 * Get the boundary positions
+		 *
+		 * @param i_edge which edge
+		 * @return value in the corresponding dimension
+		 */
+		float getBoundaryPos(BoundaryEdge i_edge) {
+		    if ( i_edge == BND_LEFT )
+		      return (float)-xDim/2.0f;
+		    else if ( i_edge == BND_RIGHT)
+		      return (float)xDim/2.0f;
+		    else if ( i_edge == BND_BOTTOM )
+		      return (float)-yDim/2.0f;
+		    else
+		      return (float)yDim/2.0f;
+		};
 };
 
 
