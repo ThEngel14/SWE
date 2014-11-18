@@ -80,9 +80,9 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 	//dimensions
 	int l_timeDim, l_xDim, l_yDim, l_boundaryDim;
 	nc_def_dim(dataFile, "time", NC_UNLIMITED, &l_timeDim);
+	nc_def_dim(dataFile, "boundary", 4, &l_boundaryDim);
 	nc_def_dim(dataFile, "x", nX, &l_xDim);
 	nc_def_dim(dataFile, "y", nY, &l_yDim);
-	nc_def_dim(dataFile, "boundary", 4, &l_boundaryDim);
 
 	//variables (TODO: add rest of CF-1.5)
 	int l_xVar, l_yVar;
@@ -91,12 +91,9 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 	ncPutAttText(timeVar, "long_name", "Time");
 	ncPutAttText(timeVar, "units", "seconds since simulation start"); // the word "since" is important for the paraview reader
 
+	nc_def_var(dataFile, "Boundary", NC_INT, 1, &l_boundaryDim, &boundaryVar);
 	nc_def_var(dataFile, "x", NC_FLOAT, 1, &l_xDim, &l_xVar);
 	nc_def_var(dataFile, "y", NC_FLOAT, 1, &l_yDim, &l_yVar);
-
-	//Boundarys
-	int dimBoundary[] = {l_boundaryDim};
-	nc_def_var(dataFile, "Boundary", NC_INT, 1, dimBoundary, &boundaryVar);
 
 	//variables, fastest changing index is on the right (C syntax), will be mirrored by the library
 	int dims[] = {l_timeDim, l_yDim, l_xDim};
@@ -104,6 +101,7 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 	nc_def_var(dataFile, "hu", NC_FLOAT, 3, dims, &huVar);
 	nc_def_var(dataFile, "hv", NC_FLOAT, 3, dims, &hvVar);
 	nc_def_var(dataFile, "b",  NC_FLOAT, 2, &dims[1], &bVar);
+
 
 	//set attributes to match CF-1.5 convention
 	ncPutAttText(NC_GLOBAL, "Conventions", "CF-1.5");

@@ -22,7 +22,7 @@ private:
 	float *hu;
 	float *hv;
 	int* boundary;
-	int xDim, yDim;
+	size_t xDim, yDim;
 	/**
 	 * Print error message.
 	 */
@@ -38,75 +38,94 @@ public:
 	 * Open and preparing a set of nc-files for bathymetry and displacement data.
 	 */
 	SWE_CheckpointScenario(){
-		int ncid;
+		int ncid, timedimid, xdimid, ydimid, boundaryid;
 		int status;
-		status = nc_open(CHECKPOINT_FILE, NC_NOWRITE, ncid);
+		status = nc_open(CHECKPOINT_FILE, NC_NOWRITE, &ncid);
 		if(status != NC_NOERR){handle_error(status);}
 
-		// get Dimensions
-		int timeDim, boundaryDim;
+//######## get Dimensions
+		size_t timeDim, boundaryDim;
 
-		status = nc_inq_dimlen(*ncid, 0, timeDim);
+		status = nc_inq_dimid(ncid, "time", &timedimid);
 		if (status != NC_NOERR) handle_error(status);
 
-		status = nc_inq_dimlen(*ncid, 1, xDim);
+		status = nc_inq_dimid(ncid, "x", &xdimid);
 		if (status != NC_NOERR) handle_error(status);
 
-		status = nc_inq_dimlen(*ncid, 2, yDim);
+		status = nc_inq_dimid(ncid, "y", &ydimid);
 		if (status != NC_NOERR) handle_error(status);
 
-		status = nc_inq_dimlen(*ncid, 3, boundaryDim);
+		status = nc_inq_dimid(ncid, "boundary", &boundaryid);
 		if (status != NC_NOERR) handle_error(status);
 
-		// get Ids
+		status = nc_inq_dimlen(ncid, timedimid, &timeDim);
+		if (status != NC_NOERR) handle_error(status);
+
+		status = nc_inq_dimlen(ncid, xdimid, &xDim);
+		if (status != NC_NOERR) handle_error(status);
+
+		status = nc_inq_dimlen(ncid, ydimid, &yDim);
+		if (status != NC_NOERR) handle_error(status);
+
+		status = nc_inq_dimlen(ncid, boundaryid, &boundaryDim);
+		if (status != NC_NOERR) handle_error(status);
+
+//######### get Ids
 		int hId, huId, hvId, bId, boundaryId;
 
-		status = nc_inq_varid(*ncid, "h", &hId);
+		status = nc_inq_varid(ncid, "h", &hId);
 		if (status != NC_NOERR) handle_error(status);
 
-		status = nc_inq_varid(*ncid, "hu", &huId);
+		status = nc_inq_varid(ncid, "hu", &huId);
 		if (status != NC_NOERR) handle_error(status);
 
-		status = nc_inq_varid(*ncid, "hv", &hvId);
+		status = nc_inq_varid(ncid, "hv", &hvId);
 		if (status != NC_NOERR) handle_error(status);
 
-		status = nc_inq_varid(*ncid, "b", &bId);
+		status = nc_inq_varid(ncid, "b", &bId);
 		if (status != NC_NOERR) handle_error(status);
 
-		status = nc_inq_varid(*ncid, "Boundary", &boundaryId);
+		status = nc_inq_varid(ncid, "Boundary", &boundaryId);
 		if (status != NC_NOERR) handle_error(status);
 
 		// init arrays
-		int *boundary = (int*) malloc(boundaryDim*sizeof(int));
-		float **water = (float*) malloc(xDim*sizeof(float));
-		float **hu = (float*) malloc(xDim*sizeof(float));
-		float **hv = (float*) malloc(xDim*sizeof(float));
-		float **bathymetry = (float*) malloc(xDim*sizeof(float));
+		boundary = (int*) malloc(boundaryDim*sizeof(int));
+		water = (float*) malloc(xDim*yDim*sizeof(float));
+		hu = (float*) malloc(xDim*yDim*sizeof(float));
+		hv = (float*) malloc(xDim*yDim*sizeof(float));
+		bathymetry = (float*) malloc(xDim*yDim*sizeof(float));
 
-		for(int k = 0; k < xDim; k++) {
+		/*for(int k = 0; k < xDim; k++) {
 			water[k] = (float*) malloc(yDim*sizeof(float));
 			hu[k] = (float*) malloc(yDim*sizeof(float));
 			hv[k] = (float*) malloc(yDim*sizeof(float));
 			bathymetry[k] = (float*) malloc(yDim*sizeof(float));
-		}
+		}*/
 
 		// get data
-		status = nc_get_var_int(ncid, boundaryId, &boundary[0]);
+
+		const size_t startboundary[] = {0};
+		const size_t countboundary[] = {4};
+		status = nc_get_vara_int(ncid, boundaryId,startboundary, countboundary, boundary);
 		if(status != NC_NOERR){handle_error(status);}
 
-		status = nc_get_var_float(ncid, bId, &bathymetry[0][0]);
+		const size_t startbathymetry[] = {0 ,0};
+		const size_t countbathymetry[] = {yDim, xDim};
+		status = nc_get_vara_float(ncid, bId,startbathymetry, countbathymetry, bathymetry);
 		if(status != NC_NOERR) {handle_error(status);}
 
-		const size_t start = {timeDim-1, 0, 0};
-		const size_t count = {timeDim-1, xDim, yDim};
+		const size_t start[] = {timeDim-1, 0, 0};
+		const size_t count[] = {timeDim-1, yDim, xDim};
 
-		status = nc_get_vara_float(ncid, hId, start, count, &water);
+		status = nc_get_vara_float(ncid, hId, start, count,water);
+		//TODO: sizeof(water)/sizeof(float) gibt hier 1 zurück. Sollte sein: yDim*xDim
+		cout<<yDim*xDim<<endl;
 		if(status != NC_NOERR){handle_error(status);}
 
-		status = nc_get_vara_float(ncid, huId, start, count, &hu);
+		status = nc_get_vara_float(ncid, huId, start, count, hu);
 		if(status != NC_NOERR){handle_error(status);}
 
-		status = nc_get_vara_float(ncid, hvId, start, count, &hv);
+		status = nc_get_vara_float(ncid, hvId, start, count, hv);
 		if(status != NC_NOERR){handle_error(status);}
 
 		// close file
@@ -115,24 +134,24 @@ public:
 	};
 
 	float getWaterHeight(float x, float y){
-		return water[x][y];
+		return water[(int)x * xDim + (int)y];
 	};
 
 	float getBathymetry(float x, float y){
-		return bathymetry[x][y];
+		return bathymetry[(int)x* xDim + (int)y];
 	};
 
 	float getVeloc_u(float x, float y) {
-		return hu[x][y]/water[x][y];
+		return hu[(int)x* xDim +(int)y]/water[(int)x* xDim +(int)y];
 	}
 
 	float getVeloc_v(float x, float y) {
-		return hv[x][y]/water[x][y];
+		return hv[(int)x* xDim +(int)y]/water[(int)x* xDim +(int)y];
 	}
 
 	virtual float endSimulation() {
 		//TODO - have to write this into the checkpoint file
-		return (float) 15;
+		return (float) 25;
 	};
 
 	/**

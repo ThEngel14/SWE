@@ -158,6 +158,7 @@ private:
 	 * Determine the value of the displacement dependend of the given position.
 	 * @param x x-coordinate
 	 * @param y y-coordinate
+	 *
 	 */
 	float computeDisplacement(float x, float y){
 		if(std::fabs(x) <= xDisplVals[xDisplSize-1] && std::fabs(y) <= yDisplVals[yDisplSize-1]){ //true if x and y are in the displ.-square
@@ -224,13 +225,12 @@ public:
 
 	float getWaterHeight(float x, float y){
 		Position pos = getClosestPosition(x,y,BATHYMETRY);
-		return -std::min(zBathVals[pos.y * yBathSize + pos.x], 0.0f);
+		return -std::min(zBathVals[pos.y * yBathSize + pos.x], 0.0f) + computeDisplacement(x,y);
 	};
 
 	float getBathymetry(float x, float y){
 		Position pos = getClosestPosition(x,y,BATHYMETRY);
 		float bath = zBathVals[pos.y * yBathSize + pos.x] + computeDisplacement(x,y);
-		//cout<<"x = "<<x<<" y = "<<y<<": "<< zBathVals[pos.x * pos.y]<<" + "<<computeDisplacement(x,y)<<"\n";
 		if(bath >= -20 * scale && bath <= 20 * scale){
 			if(bath > 0){
 				return 20 * scale;
