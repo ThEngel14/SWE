@@ -224,7 +224,7 @@ public:
 
 	float getWaterHeight(float x, float y){
 		Position pos = getClosestPosition(x,y,BATHYMETRY);
-		return -zBathVals[pos.y * yBathSize + pos.x] + computeDisplacement(x,y);
+		return -std::min(zBathVals[pos.y * yBathSize + pos.x], 0.0f);
 	};
 
 	float getBathymetry(float x, float y){

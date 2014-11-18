@@ -29,6 +29,7 @@ private:
 	    Float2D hAbove;
 	    Float2D hvBelow;
 	    Float2D hvAbove;
+
 public:
 
 	swe_dimensionalsplitting(int l_nx, int l_ny, float l_dx, float l_dy);

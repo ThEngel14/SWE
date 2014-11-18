@@ -30,7 +30,7 @@ public:
 	};
 
 	float getWaterHeight(float x, float y){
-		return 100.0f * scale + computeDisplacement(x,y);
+		return -std::min(getBathymetry(x,y), 0.0f);;
 	};
 
 	float getBathymetry(float x, float y){
