@@ -20,7 +20,9 @@
 
 class SWE_TsunamiScenario: public SWE_Scenario {
 private:
-	static const float scale = 1/100.0f; //use the denominator as cell number
+	static const float xscale = 1/100.0f; //use the denominator as cell number
+	static const float yscale = 1/100.0f; //use the denominator as cell number
+	static const float zscale = 1/100.0f; //use the denominator as cell number
 	struct Position{
 		int x;
 		int y;
@@ -35,6 +37,11 @@ private:
 
 	size_t xDisplSize;
 	size_t yDisplSize;
+
+	float xBathMaxValue;
+	float yBathMaxValue;
+	float xDisplMaxValue;
+	float yDisplMaxValue;
 
 	float *xBathVals;
 	float *yBathVals;
@@ -161,7 +168,7 @@ private:
 	 *
 	 */
 	float computeDisplacement(float x, float y){
-		if(std::fabs(x) <= xDisplVals[xDisplSize-1] && std::fabs(y) <= yDisplVals[yDisplSize-1]){ //true if x and y are in the displ.-square
+		if(std::fabs(x) <= xDisplMaxValue && std::fabs(y) <= yDisplMaxValue){ //true if x and y are in the displ.-square
 			Position posDisp = getClosestPosition(x,y,DISPLACEMENT);
 			return zDisplVals[posDisp.y * yDisplSize + posDisp.x];
 		}
@@ -174,28 +181,28 @@ private:
 	void scaleAllVals(){
 
 		for(int i=0;i < xBathSize;i++){
-			xBathVals[i] *= scale;
+			xBathVals[i] *= xscale;
 		}
 
 		for(int i=0;i < yBathSize;i++){
-			yBathVals[i] *= scale;
+			yBathVals[i] *= yscale;
 		}
 
 		int zBathSize = xBathSize * yBathSize;
 		for(int i=0;i < zBathSize;i++){
-			zBathVals[i] *= scale;
+			zBathVals[i] *= zscale;
 		}
 
 		for(int i=0;i < xDisplSize;i++){
-			xDisplVals[i] *= scale;
+			xDisplVals[i] *= xscale;
 		}
 		for(int i=0;i < yDisplSize;i++){
-			yDisplVals[i] *= scale;
+			yDisplVals[i] *= yscale;
 		}
 
 		int zDisplSize = xDisplSize * yDisplSize;
 		for(int i=0;i < zDisplSize;i++){
-			zDisplVals[i] *= scale;
+			zDisplVals[i] *= zscale;
 		}
 
 
@@ -221,6 +228,10 @@ public:
 
 		scaleAllVals();
 
+		xBathMaxValue = xBathVals[xBathSize-1];
+		yBathMaxValue = yBathVals[yBathSize-1];
+		xDisplMaxValue = xDisplVals[xDisplSize-1];
+		yDisplMaxValue = yDisplVals[yDisplSize-1];
 	};
 
 	float getWaterHeight(float x, float y){
@@ -231,11 +242,11 @@ public:
 	float getBathymetry(float x, float y){
 		Position pos = getClosestPosition(x,y,BATHYMETRY);
 		float bath = zBathVals[pos.y * yBathSize + pos.x] + computeDisplacement(x,y);
-		if(bath >= -20 * scale && bath <= 20 * scale){
+		if(bath >= -20 * zscale && bath <= 20 * zscale){
 			if(bath > 0){
-				return 20 * scale;
+				return 20 * zscale;
 			}else{
-				return -20 * scale;
+				return -20 * zscale;
 			}
 		}
 		return bath;
@@ -257,17 +268,17 @@ public:
 	 * @return value in the corresponding dimension
 	 */
 	float getBoundaryPos(BoundaryEdge i_edge) {
-		int xboundary = (xBathSize/2) * std::floor( xBathSize / (xBathVals[xBathSize-1]*2) + 0.5f);
+		int xboundary = (xBathSize/2) * std::floor( xBathSize / (xBathMaxValue*2) + 0.5f);
 										//compute conversionrate from dimension to meter
-		int yboundary = (yBathSize/2) * std::floor( yBathSize / (yBathVals[yBathSize-1]*2) + 0.5f);
+		int yboundary = (yBathSize/2) * std::floor( yBathSize / (yBathMaxValue*2) + 0.5f);
 	    if ( i_edge == BND_LEFT )
-	      return (float)-xboundary * scale;
+	      return (float)-xboundary * xscale;
 	    else if ( i_edge == BND_RIGHT)
-	      return (float)xboundary * scale;
+	      return (float)xboundary * xscale;
 	    else if ( i_edge == BND_BOTTOM )
-	      return (float)-yboundary * scale;
+	      return (float)-yboundary * yscale;
 	    else
-	      return (float)yboundary * scale;
+	      return (float)yboundary * yscale;
 	};
 };
 

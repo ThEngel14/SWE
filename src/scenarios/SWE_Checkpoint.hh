@@ -95,13 +95,6 @@ public:
 		hv = (float*) malloc(xDim*yDim*sizeof(float));
 		bathymetry = (float*) malloc(xDim*yDim*sizeof(float));
 
-		/*for(int k = 0; k < xDim; k++) {
-			water[k] = (float*) malloc(yDim*sizeof(float));
-			hu[k] = (float*) malloc(yDim*sizeof(float));
-			hv[k] = (float*) malloc(yDim*sizeof(float));
-			bathymetry[k] = (float*) malloc(yDim*sizeof(float));
-		}*/
-
 		// get data
 
 		const size_t startboundary[] = {0};
@@ -115,11 +108,9 @@ public:
 		if(status != NC_NOERR) {handle_error(status);}
 
 		const size_t start[] = {timeDim-1, 0, 0};
-		const size_t count[] = {timeDim-1, yDim, xDim};
+		const size_t count[] = {1, yDim, xDim};
 
 		status = nc_get_vara_float(ncid, hId, start, count,water);
-		//TODO: sizeof(water)/sizeof(float) gibt hier 1 zurück. Sollte sein: yDim*xDim
-		cout<<yDim*xDim<<endl;
 		if(status != NC_NOERR){handle_error(status);}
 
 		status = nc_get_vara_float(ncid, huId, start, count, hu);
@@ -211,11 +202,11 @@ public:
 		 */
 		float getBoundaryPos(BoundaryEdge i_edge) {
 		    if ( i_edge == BND_LEFT )
-		      return (float)-xDim/2.0f;
+		      return (float)-(xDim/2.0f);
 		    else if ( i_edge == BND_RIGHT)
 		      return (float)xDim/2.0f;
 		    else if ( i_edge == BND_BOTTOM )
-		      return (float)-yDim/2.0f;
+		      return (float)-(yDim/2.0f);
 		    else
 		      return (float)yDim/2.0f;
 		};

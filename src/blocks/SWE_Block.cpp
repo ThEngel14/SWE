@@ -100,7 +100,7 @@ void SWE_Block::initScenario( float _offsetX, float _offsetY,
       float y = offsetY + (j-0.5f)*dy;
       h[i][j] =  i_scenario.getWaterHeight(x,y);
       hu[i][j] = i_scenario.getVeloc_u(x,y) * h[i][j];
-      hv[i][j] = i_scenario.getVeloc_v(x,y) * h[i][j]; 
+      hv[i][j] = i_scenario.getVeloc_v(x,y) * h[i][j];
     };
 
   // initialize bathymetry

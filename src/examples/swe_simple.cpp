@@ -145,9 +145,9 @@ int main( int argc, char** argv ) {
   // create a simple artificial scenario
   //SWE_RadialDamBreakScenario l_scenario;
 
-  //SWE_TsunamiScenario l_scenario;
+  SWE_TsunamiScenario l_scenario;
   //SWE_ArtificialTsunamiScenario l_scenario;
-  SWE_CheckpointScenario l_scenario;
+  //SWE_CheckpointScenario l_scenario;
 
 
   #endif
