@@ -50,6 +50,7 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 		const Float2D &i_b,
 		const BoundarySize &i_boundarySize,
 		const enum BoundaryType *i_boundaryType,
+		bool isCheckPoint,
 		int i_nX, int i_nY,
 		float i_dX, float i_dY,
 		float i_originX, float i_originY,
@@ -58,6 +59,8 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
   io::Writer(i_baseName + ".nc", i_b, i_boundarySize, i_nX, i_nY),
   flush(i_flush)
 {
+	if(isCheckPoint)return;
+
 	int status;
 
 	//create a netCDF-file, an existing file will be replaced

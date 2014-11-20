@@ -20,9 +20,9 @@
 
 class SWE_TsunamiScenario: public SWE_Scenario {
 private:
-	static const float xscale = 1/100.0f; //use the denominator as cell number
-	static const float yscale = 1/100.0f; //use the denominator as cell number
-	static const float zscale = 1/100.0f; //use the denominator as cell number
+	float xscale; //= 1/100.0f; //use the denominator as cell number
+	float yscale; // = 1/100.0f; //use the denominator as cell number
+	float zscale; //= 1/100.0f; //use the denominator as cell number
 	struct Position{
 		int x;
 		int y;
@@ -226,6 +226,10 @@ public:
 		zDisplVals = (float*)malloc(xDisplSize * yDisplSize * sizeof(float));
 		readcloseNetcdf(ncDisplid, xDisplSize, yDisplSize, xDisplVals, yDisplVals, zDisplVals);
 
+		float numberOfCells = 100.0f;
+		xscale = (float)numberOfCells / (xBathVals[xBathSize-1] * 2.0f);
+		yscale = (float)numberOfCells / (yBathVals[yBathSize-1] * 2.0f);
+		zscale = (xscale + yscale) / 2.0f;
 		scaleAllVals();
 
 		xBathMaxValue = xBathVals[xBathSize-1];

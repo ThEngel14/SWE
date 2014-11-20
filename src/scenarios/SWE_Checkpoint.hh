@@ -107,7 +107,7 @@ public:
 		status = nc_get_vara_float(ncid, bId,startbathymetry, countbathymetry, bathymetry);
 		if(status != NC_NOERR) {handle_error(status);}
 
-		const size_t start[] = {timeDim-1, 0, 0};
+		const size_t start[] = {timeDim - 1, 0, 0};
 		const size_t count[] = {1, yDim, xDim};
 
 		status = nc_get_vara_float(ncid, hId, start, count,water);
@@ -122,21 +122,36 @@ public:
 		// close file
 		status = nc_close(ncid);
 		if (status != NC_NOERR) handle_error(status);
+
+		/*for(int i=0;i<yDim;i++){
+			for(int j=0;j<xDim;j++){
+				cout<<hu[ i*yDim + j]<<" ";
+			}
+			cout<<endl;
+		}cout<<endl;*/
 	};
 
 	float getWaterHeight(float x, float y){
+		x+=50.0f;
+		y+=50.0f;
 		return water[(int)x * xDim + (int)y];
 	};
 
 	float getBathymetry(float x, float y){
+		x+=50.0f;
+		y+=50.0f;
 		return bathymetry[(int)x* xDim + (int)y];
 	};
 
 	float getVeloc_u(float x, float y) {
+		x+=50.0f;
+		y+=50.0f;
 		return hu[(int)x* xDim +(int)y]/water[(int)x* xDim +(int)y];
 	}
 
 	float getVeloc_v(float x, float y) {
+		x+=50.0f;
+		y+=50.0f;
 		return hv[(int)x* xDim +(int)y]/water[(int)x* xDim +(int)y];
 	}
 

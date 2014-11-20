@@ -37,6 +37,7 @@
 #include "scenarios/SWE_TsunamiScenario.hh"
 #include "scenarios/SWE_ArtificialTsunamiScenario.hh"
 #include "scenarios/SWE_Checkpoint.hh"
+
 //#ifndef CUDA
 //#include "blocks/SWE_WavePropagationBlock.hh"
 //#else
@@ -145,9 +146,9 @@ int main( int argc, char** argv ) {
   // create a simple artificial scenario
   //SWE_RadialDamBreakScenario l_scenario;
 
-  SWE_TsunamiScenario l_scenario;
+  //SWE_TsunamiScenario l_scenario;
   //SWE_ArtificialTsunamiScenario l_scenario;
-  //SWE_CheckpointScenario l_scenario;
+  SWE_CheckpointScenario l_scenario;
 
 
   #endif
@@ -208,12 +209,14 @@ int main( int argc, char** argv ) {
 		  	  	  	  	  	  	 l_scenario.getBoundaryType(BND_LEFT),
 		  	  	  	  	  	  	 l_scenario.getBoundaryType(BND_RIGHT)};
 
+
 #ifdef WRITENETCDF
   //construct a NetCdfWriter
   io::NetCdfWriter l_writer( l_fileName,
 		  l_wavePropgationBlock.getBathymetry(),
 		  l_boundarySize,
 		  l_boundaryType,
+		  false,
 		  l_nX, l_nY,
 		  l_dX, l_dY,
 		  l_originX, l_originY);
@@ -245,7 +248,7 @@ int main( int argc, char** argv ) {
   progressBar.update(l_t);
 
   unsigned int l_iterations = 0;
-
+//cout<<l_wavePropgationBlock.getMaxTimestep()<<endl;
   // loop over checkpoints
   for(int c=1; c<=l_numberOfCheckPoints; c++) {
 
