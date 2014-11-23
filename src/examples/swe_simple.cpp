@@ -104,7 +104,7 @@ int main( int argc, char** argv ) {
   #ifndef READXML
   l_nX = args.getArgument<int>("grid-size-x");
   l_nY = args.getArgument<int>("grid-size-y");
-  l_time = args.getArgument<int>("simulation-time", 15);
+  l_time = args.getArgument<int>("simulation-time", 0);
   l_baseName = args.getArgument<std::string>("output-basepath");
   #endif
 
@@ -151,12 +151,18 @@ int main( int argc, char** argv ) {
   // create a simple artificial scenario
   //SWE_RadialDamBreakScenario l_scenario;
 
-  SWE_TsunamiScenario l_scenario;
+  //SWE_TsunamiScenario l_scenario;
   //SWE_ArtificialTsunamiScenario l_scenario;
-  //SWE_CheckpointScenario l_scenario;
+  SWE_CheckpointScenario l_scenario;
 
+  bool isCheckpointScenario = true;
 
   #endif
+
+  if(isCheckpointScenario) {
+	  l_nX = l_scenario.getxDim();
+	  l_nY = l_scenario.getyDim();
+  }
 
   //! number of checkpoints for visualization (at each checkpoint in time, an output file is written).
   int l_numberOfCheckPoints = 20;
@@ -187,7 +193,7 @@ int main( int argc, char** argv ) {
 
 
   //! time when the simulation ends.
-  float l_endSimulation = l_time;//l_scenario.endSimulation();
+  float l_endSimulation = l_time > 0 ? l_time : l_scenario.endSimulation();
 
   //! checkpoints when output files are written.
   float* l_checkPoints = new float[l_numberOfCheckPoints+1];
@@ -230,7 +236,11 @@ int main( int argc, char** argv ) {
 	  l_boundaryType[0] = l_boundaryType[1] = l_boundaryType[2] = l_boundaryType[3] = b;
   }
 
-
+  float l_boundaryPos[4];
+  l_boundaryPos[0] = l_scenario.getBoundaryPos(BND_TOP);
+  l_boundaryPos[1] = l_scenario.getBoundaryPos(BND_BOTTOM);
+  l_boundaryPos[2] = l_scenario.getBoundaryPos(BND_LEFT);
+  l_boundaryPos[3] = l_scenario.getBoundaryPos(BND_RIGHT);
 
 
 #ifdef WRITENETCDF
@@ -239,10 +249,13 @@ int main( int argc, char** argv ) {
 		  l_wavePropgationBlock.getBathymetry(),
 		  l_boundarySize,
 		  l_boundaryType,
-		  false,
+		  l_boundaryPos,
+		  l_endSimulation,
+		  isCheckpointScenario,
 		  l_nX, l_nY,
 		  l_dX, l_dY,
-		  l_originX, l_originY);
+		  l_originX, l_originY,
+		  1);
 #else
   // consturct a VtkWriter
   io::VtkWriter l_writer( l_fileName,
@@ -268,10 +281,15 @@ int main( int argc, char** argv ) {
 
   //! simulation time.
   float l_t = 0.0;
+  if(isCheckpointScenario) {
+	  l_t = l_scenario.continueSimulationAt();
+  }
+
   progressBar.update(l_t);
 
   unsigned int l_iterations = 0;
 //cout<<l_wavePropgationBlock.getMaxTimestep()<<endl;
+
   // loop over checkpoints
   for(int c=1; c<=l_numberOfCheckPoints; c++) {
 
@@ -314,6 +332,8 @@ int main( int argc, char** argv ) {
     progressBar.clear();
     tools::Logger::logger.printOutputTime(l_t);
     progressBar.update(l_t);
+
+    //cout << "**********************\n*****************" << endl;
 
     // write output
     l_writer.writeTimeStep( l_wavePropgationBlock.getWaterHeight(),

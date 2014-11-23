@@ -57,8 +57,10 @@ private:
     /** netCDF file id*/
     int dataFile;
 
+    bool checkPoint;
+
     /** Variable ids */
-    int timeVar, hVar, huVar, hvVar, bVar, boundaryVar;
+    int timeVar, hVar, huVar, hvVar, bVar, boundaryVar, boundaryPosVar, endSimulationVar;
 
     /** Flush after every x write operation? */
     unsigned int flush;
@@ -77,6 +79,8 @@ private:
     			 const Float2D &i_b,
                  const BoundarySize &i_boundarySize,
                  const enum BoundaryType *i_boundaryType,
+                 const float *i_boundaryPos,
+                 const float endSimulation,
                  bool isCheckPoint,
                  int i_nX, int i_nY,
                  float i_dX, float i_dY,

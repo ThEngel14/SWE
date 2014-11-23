@@ -22,6 +22,8 @@ private:
 	float *hu;
 	float *hv;
 	int* boundary;
+	float* boundaryPos;
+	float* l_endSimulation;
 	size_t xDim, yDim;
 	/**
 	 * Print error message.
@@ -38,13 +40,13 @@ public:
 	 * Open and preparing a set of nc-files for bathymetry and displacement data.
 	 */
 	SWE_CheckpointScenario(){
-		int ncid, timedimid, xdimid, ydimid, boundaryid;
+		int ncid, timedimid, xdimid, ydimid, boundaryid, boundaryPosid, endSimulationid;
 		int status;
 		status = nc_open(CHECKPOINT_FILE, NC_NOWRITE, &ncid);
 		if(status != NC_NOERR){handle_error(status);}
 
 //######## get Dimensions
-		size_t timeDim, boundaryDim;
+		size_t timeDim, boundaryDim, boundaryPosDim, endSimulationDim;
 
 		status = nc_inq_dimid(ncid, "time", &timedimid);
 		if (status != NC_NOERR) handle_error(status);
@@ -56,6 +58,12 @@ public:
 		if (status != NC_NOERR) handle_error(status);
 
 		status = nc_inq_dimid(ncid, "boundary", &boundaryid);
+		if (status != NC_NOERR) handle_error(status);
+
+		status = nc_inq_dimid(ncid, "boundaryPos", &boundaryPosid);
+		if (status != NC_NOERR) handle_error(status);
+
+		status = nc_inq_dimid(ncid, "endSimulation", &endSimulationid);
 		if (status != NC_NOERR) handle_error(status);
 
 		status = nc_inq_dimlen(ncid, timedimid, &timeDim);
@@ -70,8 +78,14 @@ public:
 		status = nc_inq_dimlen(ncid, boundaryid, &boundaryDim);
 		if (status != NC_NOERR) handle_error(status);
 
+		status = nc_inq_dimlen(ncid, boundaryPosid, &boundaryPosDim);
+		if (status != NC_NOERR) handle_error(status);
+
+		status = nc_inq_dimlen(ncid, endSimulationid, &endSimulationDim);
+		if (status != NC_NOERR) handle_error(status);
+
 //######### get Ids
-		int hId, huId, hvId, bId, boundaryId;
+		int hId, huId, hvId, bId, boundaryId, boundaryPosId, endSimulationId;
 
 		status = nc_inq_varid(ncid, "h", &hId);
 		if (status != NC_NOERR) handle_error(status);
@@ -88,8 +102,15 @@ public:
 		status = nc_inq_varid(ncid, "Boundary", &boundaryId);
 		if (status != NC_NOERR) handle_error(status);
 
+		status = nc_inq_varid(ncid, "BoundaryPos", &boundaryPosId);
+		if (status != NC_NOERR) handle_error(status);
+
+		status = nc_inq_varid(ncid, "EndSimulation", &endSimulationId);
+
 		// init arrays
 		boundary = (int*) malloc(boundaryDim*sizeof(int));
+		boundaryPos = (float*) malloc(boundaryPosDim*sizeof(float));
+		l_endSimulation = (float*) malloc(endSimulationDim*sizeof(float));
 		water = (float*) malloc(xDim*yDim*sizeof(float));
 		hu = (float*) malloc(xDim*yDim*sizeof(float));
 		hv = (float*) malloc(xDim*yDim*sizeof(float));
@@ -102,12 +123,21 @@ public:
 		status = nc_get_vara_int(ncid, boundaryId,startboundary, countboundary, boundary);
 		if(status != NC_NOERR){handle_error(status);}
 
+		status = nc_get_vara_float(ncid, boundaryPosId,startboundary, countboundary, boundaryPos);
+		if(status != NC_NOERR){handle_error(status);}
+
+
+		const size_t startEndSim[] = {0};
+		const size_t countEndSim[] = {1};
+		status = nc_get_vara_float(ncid, endSimulationId, startEndSim, countEndSim, l_endSimulation);
+		if(status != NC_NOERR){handle_error(status);}
+
 		const size_t startbathymetry[] = {0 ,0};
 		const size_t countbathymetry[] = {yDim, xDim};
 		status = nc_get_vara_float(ncid, bId,startbathymetry, countbathymetry, bathymetry);
 		if(status != NC_NOERR) {handle_error(status);}
 
-		const size_t start[] = {timeDim - 1, 0, 0};
+		const size_t start[] = {timeDim-1, 0, 0};
 		const size_t count[] = {1, yDim, xDim};
 
 		status = nc_get_vara_float(ncid, hId, start, count,water);
@@ -123,42 +153,61 @@ public:
 		status = nc_close(ncid);
 		if (status != NC_NOERR) handle_error(status);
 
-		/*for(int i=0;i<yDim;i++){
-			for(int j=0;j<xDim;j++){
-				cout<<hu[ i*yDim + j]<<" ";
+		/*
+		cout << "yDim: " << yDim << " xDim: " << xDim << endl;
+		cout << "Checkpoint water height:" << endl;
+		for(int i = 0; i < yDim; i++) {
+			for(int j = 0; j < xDim; j++) {
+				cout << water[i*xDim + j] << " ";
 			}
-			cout<<endl;
-		}cout<<endl;*/
+			cout << endl;
+		}
+		*/
 	};
 
 	float getWaterHeight(float x, float y){
-		x+=50.0f;
-		y+=50.0f;
-		return water[(int)x * xDim + (int)y];
+		int xPos = (int) (((x+getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
+		int yPos = (int) (((y+getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
+
+		return water[yPos*xDim + xPos];
 	};
 
 	float getBathymetry(float x, float y){
-		x+=50.0f;
-		y+=50.0f;
-		return bathymetry[(int)x* xDim + (int)y];
+		int xPos = (int) (((x+getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
+		int yPos = (int) (((y+getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
+
+		return bathymetry[yPos*xDim + xPos];
 	};
 
 	float getVeloc_u(float x, float y) {
-		x+=50.0f;
-		y+=50.0f;
-		return hu[(int)x* xDim +(int)y]/water[(int)x* xDim +(int)y];
+		int xPos = (int) (((x+getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
+		int yPos = (int) (((y+getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
+
+		return hu[yPos*xDim + xPos]/water[yPos*xDim + xPos];
 	}
 
 	float getVeloc_v(float x, float y) {
-		x+=50.0f;
-		y+=50.0f;
-		return hv[(int)x* xDim +(int)y]/water[(int)x* xDim +(int)y];
+		int xPos = (int) (((x+getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
+		int yPos = (int) (((y+getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
+
+		return hv[yPos*xDim + xPos]/water[yPos*xDim + xPos];
 	}
 
 	virtual float endSimulation() {
-		//TODO - have to write this into the checkpoint file
-		return (float) 25;
+		return 2*l_endSimulation[0];
 	};
+
+	virtual float continueSimulationAt() {
+		return 15.0f;
+	}
+
+	virtual int getxDim() {
+		return xDim;
+	}
+
+	virtual int getyDim() {
+		return yDim;
+	}
 
 	/**
 	 *
@@ -210,21 +259,21 @@ public:
 	};
 
 	/**
-		 * Get the boundary positions
-		 *
-		 * @param i_edge which edge
-		 * @return value in the corresponding dimension
-		 */
-		float getBoundaryPos(BoundaryEdge i_edge) {
-		    if ( i_edge == BND_LEFT )
-		      return (float)-(xDim/2.0f);
-		    else if ( i_edge == BND_RIGHT)
-		      return (float)xDim/2.0f;
-		    else if ( i_edge == BND_BOTTOM )
-		      return (float)-(yDim/2.0f);
-		    else
-		      return (float)yDim/2.0f;
-		};
+	 * Get the boundary positions
+	 *
+	 * @param i_edge which edge
+	 * @return value in the corresponding dimension
+	 */
+	float getBoundaryPos(BoundaryEdge i_edge) {
+		if ( i_edge == BND_LEFT )
+		  return boundaryPos[2];
+		else if ( i_edge == BND_RIGHT)
+		  return boundaryPos[3];
+		else if ( i_edge == BND_BOTTOM )
+		  return boundaryPos[1];
+		else
+		  return boundaryPos[0];
+	};
 };
 
 
