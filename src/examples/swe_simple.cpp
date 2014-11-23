@@ -77,6 +77,8 @@ int main( int argc, char** argv ) {
   #ifndef READXML
   args.addOption("grid-size-x", 'x', "Number of cells in x direction");
   args.addOption("grid-size-y", 'y', "Number of cells in y direction");
+  args.addOption("simulation-time", 't', "Number of seconds of simulation", args.Required ,false);
+  args.addOption("boundary-condition", 'b', "1: OUTFLOW ,2:WALL ,3:INFLOW, 4:CONNECT ,5:PASSIVE", args.Required, false);
   args.addOption("output-basepath", 'o', "Output base file name");
   #endif
 
@@ -93,6 +95,8 @@ int main( int argc, char** argv ) {
   //! number of grid cells in x- and y-direction.
   int l_nX, l_nY;
 
+  int l_time, l_boundary;
+
   //! l_baseName of the plots.
   std::string l_baseName;
 
@@ -100,6 +104,7 @@ int main( int argc, char** argv ) {
   #ifndef READXML
   l_nX = args.getArgument<int>("grid-size-x");
   l_nY = args.getArgument<int>("grid-size-y");
+  l_time = args.getArgument<int>("simulation-time", 15);
   l_baseName = args.getArgument<std::string>("output-basepath");
   #endif
 
@@ -146,9 +151,9 @@ int main( int argc, char** argv ) {
   // create a simple artificial scenario
   //SWE_RadialDamBreakScenario l_scenario;
 
-  //SWE_TsunamiScenario l_scenario;
+  SWE_TsunamiScenario l_scenario;
   //SWE_ArtificialTsunamiScenario l_scenario;
-  SWE_CheckpointScenario l_scenario;
+  //SWE_CheckpointScenario l_scenario;
 
 
   #endif
@@ -182,7 +187,7 @@ int main( int argc, char** argv ) {
 
 
   //! time when the simulation ends.
-  float l_endSimulation = l_scenario.endSimulation();
+  float l_endSimulation = l_time;//l_scenario.endSimulation();
 
   //! checkpoints when output files are written.
   float* l_checkPoints = new float[l_numberOfCheckPoints+1];
@@ -204,10 +209,28 @@ int main( int argc, char** argv ) {
   io::BoundarySize l_boundarySize = {{1, 1, 1, 1}};
 
   //boundary type
-  BoundaryType l_boundaryType[] = {l_scenario.getBoundaryType(BND_TOP),
-		  	  	  	  	  	  	 l_scenario.getBoundaryType(BND_BOTTOM),
-		  	  	  	  	  	  	 l_scenario.getBoundaryType(BND_LEFT),
-		  	  	  	  	  	  	 l_scenario.getBoundaryType(BND_RIGHT)};
+  #ifndef READXML
+  l_boundary = args.getArgument<int>("boundary-condition", -1);
+  #endif
+  BoundaryType l_boundaryType[4];
+  if(l_boundary == -1){
+	  l_boundaryType[0] = l_scenario.getBoundaryType(BND_TOP);
+	  l_boundaryType[0] = l_scenario.getBoundaryType(BND_BOTTOM);
+	  l_boundaryType[0] = l_scenario.getBoundaryType(BND_LEFT);
+	  l_boundaryType[0] = l_scenario.getBoundaryType(BND_RIGHT);
+  }else{
+	  BoundaryType b;
+	  switch(l_boundary){
+	  case 2: b = WALL; break;
+	  case 3: b = INFLOW; break;
+	  case 4: b = CONNECT; break;
+	  case 5: b = PASSIVE; break;
+	  default: b = OUTFLOW;
+	  }
+	  l_boundaryType[0] = l_boundaryType[1] = l_boundaryType[2] = l_boundaryType[3] = b;
+  }
+
+
 
 
 #ifdef WRITENETCDF

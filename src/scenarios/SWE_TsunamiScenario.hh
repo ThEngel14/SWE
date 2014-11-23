@@ -14,15 +14,19 @@
 #include <netcdf.h>
 //See https://www.unidata.ucar.edu/software/netcdf/docs/netcdf-c.pdf for netcdf instructions
 
-#define BATHFILE "NCScenario/artificialtsunami_bathymetry_1000.nc"
-#define DISPFILE "NCScenario/artificialtsunami_displ_1000.nc"
-
+//#define BATHFILE "NCScenario/artificialtsunami_bathymetry_1000.nc"
+//#define DISPFILE "NCScenario/artificialtsunami_displ_1000.nc"
+#define BATHFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_bath.nc"
+#define DISPFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_displ.nc"
+//#define BATHFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_bath.nc"
+//#define DISPFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_displ.nc"
 
 class SWE_TsunamiScenario: public SWE_Scenario {
 private:
-	float xscale; //= 1/100.0f; //use the denominator as cell number
-	float yscale; // = 1/100.0f; //use the denominator as cell number
-	float zscale; //= 1/100.0f; //use the denominator as cell number
+	//float numberOfCells;
+	//float xscale;
+	//float yscale;
+	//float zscale;
 	struct Position{
 		int x;
 		int y;
@@ -42,6 +46,10 @@ private:
 	float yBathMaxValue;
 	float xDisplMaxValue;
 	float yDisplMaxValue;
+	float xBathMinValue;
+	float yBathMinValue;
+	float xDisplMinValue;
+	float yDisplMinValue;
 
 	float *xBathVals;
 	float *yBathVals;
@@ -103,14 +111,20 @@ private:
 	 * @param yDim dimension on y-axis
 	 */
 	void openNetcdf(const char *file, int *ncid, size_t *xDim, size_t *yDim){
-		int status;
+		int status, xid, yid;
 		status = nc_open(file, 0, ncid);
 		if(status != NC_NOERR){handle_error(status);}
 
-		status = nc_inq_dimlen(*ncid, 0, xDim);
+		status = nc_inq_dimid(*ncid, "x", &xid);
 		if (status != NC_NOERR) handle_error(status);
 
-		status = nc_inq_dimlen(*ncid, 1, yDim);
+		status = nc_inq_dimid(*ncid, "y", &yid);
+		if (status != NC_NOERR) handle_error(status);
+
+		status = nc_inq_dimlen(*ncid, xid, xDim);
+		if (status != NC_NOERR) handle_error(status);
+
+		status = nc_inq_dimlen(*ncid, yid, yDim);
 		if (status != NC_NOERR) handle_error(status);
 	}
 
@@ -127,22 +141,27 @@ private:
 	void readcloseNetcdf(int ncid, size_t xsize, size_t ysize, float *xVals, float *yVals, float *zVals){
 		int status;
 		int zid;
-		const size_t start[] = {0, 0}; 			// start at first value
+		const size_t start[] = {0}; 			// start at first value
 
-		const size_t count[] = {xsize, ysize};
+		const size_t countX[] = {xsize};
+
+
 		status = nc_inq_varid(ncid, "x", &zid);
 		if(status != NC_NOERR){handle_error(status);}
-		status = nc_get_vara_float(ncid, zid, start, count, xVals);
+		status = nc_get_vara_float(ncid, zid, start, countX, xVals);
 		if(status != NC_NOERR){handle_error(status);}
 
+		const size_t countY[] = {ysize};
 		status = nc_inq_varid(ncid, "y", &zid);
 		if(status != NC_NOERR){handle_error(status);}
-		status = nc_get_vara_float(ncid, zid, start, count, yVals);
+		status = nc_get_vara_float(ncid, zid, start, countY, yVals);
 		if(status != NC_NOERR){handle_error(status);}
 
+		const size_t startZ[] = {0, 0}; 			// start at first value
+		const size_t countZ[] = {ysize, xsize};
 		status = nc_inq_varid(ncid, "z", &zid);
 		if(status != NC_NOERR){handle_error(status);}
-		status = nc_get_vara_float(ncid, zid, start, count, zVals);
+		status = nc_get_vara_float(ncid, zid, startZ, countZ, zVals);
 		if(status != NC_NOERR){handle_error(status);}
 
 		status = nc_close(ncid);
@@ -168,9 +187,11 @@ private:
 	 *
 	 */
 	float computeDisplacement(float x, float y){
-		if(std::fabs(x) <= xDisplMaxValue && std::fabs(y) <= yDisplMaxValue){ //true if x and y are in the displ.-square
+		//if(std::fabs(x) < 1 && std::fabs(y)<1)return 100.0f;
+		if(x  >= xDisplMinValue && x <= xDisplMaxValue
+				&& y >= yDisplMinValue && y <= yDisplMaxValue){ //true if x and y are in the displ.-rect
 			Position posDisp = getClosestPosition(x,y,DISPLACEMENT);
-			return zDisplVals[posDisp.y * yDisplSize + posDisp.x];
+			return zDisplVals[ posDisp.y * xDisplSize + posDisp.x] ;
 		}
 		return 0.0f;
 	}
@@ -178,7 +199,7 @@ private:
 	/**
 	 * Scales all values of the arrays with a predefined number to ensure the correct proportion of the scenario.
 	 */
-	void scaleAllVals(){
+	/*void scaleAllVals(){
 
 		for(int i=0;i < xBathSize;i++){
 			xBathVals[i] *= xscale;
@@ -206,12 +227,13 @@ private:
 		}
 
 
-	}
+	}*/
 public:
 	/**
 	 * Open and preparing a set of nc-files for bathymetry and displacement data.
 	 */
-	SWE_TsunamiScenario(){
+	SWE_TsunamiScenario()
+	{
 		int ncBathid;
 		openNetcdf(BATHFILE,&ncBathid, &xBathSize, &yBathSize);
 		xBathVals = (float*)malloc(xBathSize * sizeof(float));
@@ -226,33 +248,45 @@ public:
 		zDisplVals = (float*)malloc(xDisplSize * yDisplSize * sizeof(float));
 		readcloseNetcdf(ncDisplid, xDisplSize, yDisplSize, xDisplVals, yDisplVals, zDisplVals);
 
-		float numberOfCells = 100.0f;
-		xscale = (float)numberOfCells / (xBathVals[xBathSize-1] * 2.0f);
-		yscale = (float)numberOfCells / (yBathVals[yBathSize-1] * 2.0f);
-		zscale = (xscale + yscale) / 2.0f;
-		scaleAllVals();
+		//xscale = numberOfCells / (xBathVals[xBathSize-1] - xBathVals[0]);
+		//yscale = numberOfCells / (yBathVals[yBathSize-1] - yBathVals[0]);
+		//zscale = (xscale + yscale) / 2.0f;
+		//scaleAllVals();
 
 		xBathMaxValue = xBathVals[xBathSize-1];
 		yBathMaxValue = yBathVals[yBathSize-1];
 		xDisplMaxValue = xDisplVals[xDisplSize-1];
 		yDisplMaxValue = yDisplVals[yDisplSize-1];
+		xBathMinValue = xBathVals[0];
+		yBathMinValue = yBathVals[0];
+		xDisplMinValue = xDisplVals[0];
+		yDisplMinValue = yDisplVals[0];
+
+
 	};
 
 	float getWaterHeight(float x, float y){
 		Position pos = getClosestPosition(x,y,BATHYMETRY);
-		return -std::min(zBathVals[pos.y * yBathSize + pos.x], 0.0f) + computeDisplacement(x,y);
+		return -std::min(zBathVals[pos.y * xBathSize +  pos.x], 0.0f);
 	};
 
 	float getBathymetry(float x, float y){
 		Position pos = getClosestPosition(x,y,BATHYMETRY);
-		float bath = zBathVals[pos.y * yBathSize + pos.x] + computeDisplacement(x,y);
-		if(bath >= -20 * zscale && bath <= 20 * zscale){
+		float bath = zBathVals[pos.y * xBathSize + pos.x] + computeDisplacement(x,y);
+		if(bath >= -20 && bath <= 20 ){
+			if(bath > 0){
+				return 20 ;
+			}else{
+				return -20 ;
+				}
+		}
+		/*if(bath >= -20 * zscale && bath <= 20 * zscale){
 			if(bath > 0){
 				return 20 * zscale;
 			}else{
 				return -20 * zscale;
 			}
-		}
+		}*/
 		return bath;
 	};
 
@@ -263,7 +297,7 @@ public:
 	 * @param edge BoundaryEdge to request the BoundaryType
 	 * @return the BoundaryType for the given edge
 	 */
-	virtual BoundaryType getBoundaryType(BoundaryEdge edge) { return WALL; };
+	virtual BoundaryType getBoundaryType(BoundaryEdge edge) { return OUTFLOW; };
 
 	/**
 	 * Get the boundary positions
@@ -272,17 +306,14 @@ public:
 	 * @return value in the corresponding dimension
 	 */
 	float getBoundaryPos(BoundaryEdge i_edge) {
-		int xboundary = (xBathSize/2) * std::floor( xBathSize / (xBathMaxValue*2) + 0.5f);
-										//compute conversionrate from dimension to meter
-		int yboundary = (yBathSize/2) * std::floor( yBathSize / (yBathMaxValue*2) + 0.5f);
-	    if ( i_edge == BND_LEFT )
-	      return (float)-xboundary * xscale;
+	    if ( i_edge == BND_LEFT ){
+	      return (float)xBathMinValue;}
 	    else if ( i_edge == BND_RIGHT)
-	      return (float)xboundary * xscale;
+	      return (float)xBathMaxValue;
 	    else if ( i_edge == BND_BOTTOM )
-	      return (float)-yboundary * yscale;
+	      return (float)yBathMinValue;
 	    else
-	      return (float)yboundary * yscale;
+	      return (float)yBathMaxValue;
 	};
 };
 
