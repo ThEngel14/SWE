@@ -24,6 +24,7 @@ private:
 	int* boundary;
 	float* boundaryPos;
 	float* l_endSimulation;
+	float *l_time;
 	size_t xDim, yDim;
 	/**
 	 * Print error message.
@@ -57,14 +58,14 @@ public:
 		status = nc_inq_dimid(ncid, "y", &ydimid);
 		if (status != NC_NOERR) handle_error(status);
 
-		status = nc_inq_dimid(ncid, "boundary", &boundaryid);
+		/*status = nc_inq_dimid(ncid, "boundary", &boundaryid);
 		if (status != NC_NOERR) handle_error(status);
 
 		status = nc_inq_dimid(ncid, "boundaryPos", &boundaryPosid);
 		if (status != NC_NOERR) handle_error(status);
 
 		status = nc_inq_dimid(ncid, "endSimulation", &endSimulationid);
-		if (status != NC_NOERR) handle_error(status);
+		if (status != NC_NOERR) handle_error(status);*/
 
 		status = nc_inq_dimlen(ncid, timedimid, &timeDim);
 		if (status != NC_NOERR) handle_error(status);
@@ -75,17 +76,17 @@ public:
 		status = nc_inq_dimlen(ncid, ydimid, &yDim);
 		if (status != NC_NOERR) handle_error(status);
 
-		status = nc_inq_dimlen(ncid, boundaryid, &boundaryDim);
+		/*status = nc_inq_dimlen(ncid, boundaryid, &boundaryDim);
 		if (status != NC_NOERR) handle_error(status);
 
 		status = nc_inq_dimlen(ncid, boundaryPosid, &boundaryPosDim);
 		if (status != NC_NOERR) handle_error(status);
 
 		status = nc_inq_dimlen(ncid, endSimulationid, &endSimulationDim);
-		if (status != NC_NOERR) handle_error(status);
+		if (status != NC_NOERR) handle_error(status);*/
 
 //######### get Ids
-		int hId, huId, hvId, bId, boundaryId, boundaryPosId, endSimulationId;
+		int hId, huId, hvId, bId, boundaryId, boundaryPosId, endSimulationId, timeId;
 
 		status = nc_inq_varid(ncid, "h", &hId);
 		if (status != NC_NOERR) handle_error(status);
@@ -106,11 +107,16 @@ public:
 		if (status != NC_NOERR) handle_error(status);
 
 		status = nc_inq_varid(ncid, "EndSimulation", &endSimulationId);
+		if (status != NC_NOERR) handle_error(status);
+
+		status = nc_inq_varid(ncid, "time", &timeId);
+		if (status != NC_NOERR) handle_error(status);
 
 		// init arrays
-		boundary = (int*) malloc(boundaryDim*sizeof(int));
-		boundaryPos = (float*) malloc(boundaryPosDim*sizeof(float));
-		l_endSimulation = (float*) malloc(endSimulationDim*sizeof(float));
+		boundary = (int*) malloc(4*sizeof(int));
+		boundaryPos = (float*) malloc(4*sizeof(float));
+		l_endSimulation = (float*) malloc(sizeof(float));
+		l_time = (float*) malloc(sizeof(float));
 		water = (float*) malloc(xDim*yDim*sizeof(float));
 		hu = (float*) malloc(xDim*yDim*sizeof(float));
 		hv = (float*) malloc(xDim*yDim*sizeof(float));
@@ -127,9 +133,14 @@ public:
 		if(status != NC_NOERR){handle_error(status);}
 
 
-		const size_t startEndSim[] = {0};
-		const size_t countEndSim[] = {1};
-		status = nc_get_vara_float(ncid, endSimulationId, startEndSim, countEndSim, l_endSimulation);
+
+		status = nc_get_var_float(ncid, endSimulationId, l_endSimulation);
+		if(status != NC_NOERR){handle_error(status);}
+
+		const size_t starttime[] = {timeDim - 1};
+		const size_t counttime[] = {1};
+
+		status = nc_get_vara_float(ncid, timeId, starttime, counttime ,l_time);
 		if(status != NC_NOERR){handle_error(status);}
 
 		const size_t startbathymetry[] = {0 ,0};
@@ -198,7 +209,7 @@ public:
 	};
 
 	virtual float continueSimulationAt() {
-		return 15.0f;
+		return l_time[0];
 	}
 
 	virtual int getxDim() {

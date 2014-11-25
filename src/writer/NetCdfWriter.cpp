@@ -68,7 +68,7 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 
 	if(isCheckPoint) {
 		int status;
-		status = nc_open(CHECKPOINT_FILE, NC_NOWRITE, &dataFile);
+		status = nc_open(CHECKPOINT_FILE, NC_WRITE, &dataFile);
 
 		//check if the netCDF-file creation constructor succeeded.
 		if (status != NC_NOERR) {
@@ -114,9 +114,9 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 		//dimensions
 		int l_timeDim, l_xDim, l_yDim, l_boundaryDim, l_boundaryPosDim, l_endSimulationDim;
 		nc_def_dim(dataFile, "time", NC_UNLIMITED, &l_timeDim);
-		nc_def_dim(dataFile, "boundary", 4, &l_boundaryDim);
+	/*	nc_def_dim(dataFile, "boundary", 4, &l_boundaryDim);
 		nc_def_dim(dataFile, "boundaryPos", 4, &l_boundaryPosDim);
-		nc_def_dim(dataFile, "endSimulation", 1, &l_endSimulationDim);
+		nc_def_dim(dataFile, "endSimulation", 1, &l_endSimulationDim);*/
 		nc_def_dim(dataFile, "x", nX, &l_xDim);
 		nc_def_dim(dataFile, "y", nY, &l_yDim);
 

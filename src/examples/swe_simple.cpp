@@ -149,13 +149,13 @@ int main( int argc, char** argv ) {
                                 (float) 28800., simulationArea);
   #else
   // create a simple artificial scenario
-  //SWE_RadialDamBreakScenario l_scenario;
+  SWE_RadialDamBreakScenario l_scenario;
 
   //SWE_TsunamiScenario l_scenario;
   //SWE_ArtificialTsunamiScenario l_scenario;
-  SWE_CheckpointScenario l_scenario;
+  //SWE_CheckpointScenario l_scenario;
 
-  bool isCheckpointScenario = true;
+  bool isCheckpointScenario = false;
 
   #endif
 
@@ -348,15 +348,15 @@ int main( int argc, char** argv ) {
   // write the statistics message
   progressBar.clear();
   tools::Logger::logger.printStatisticsMessage();
-
+cout<<"hier war ich"<<endl;
   // print the cpu time
   tools::Logger::logger.printTime("Cpu", "CPU time");
-
+  cout<<"hier war ich2"<<endl;
   // print the wall clock time (includes plotting)
   tools::Logger::logger.printWallClockTime(time(NULL));
-
+  cout<<"hier war ich3"<<endl;
   // printer iteration counter
   tools::Logger::logger.printIterationsDone(l_iterations);
-
+  cout<<"hier war ich4"<<endl;
   return 0;
 }
