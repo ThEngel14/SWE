@@ -148,14 +148,27 @@ int main( int argc, char** argv ) {
                                 ASAGI_INPUT_DIR "tohoku_gebco_ucsb3_500m_hawaii_displ.nc",
                                 (float) 28800., simulationArea);
   #else
-  // create a simple artificial scenario
-  SWE_RadialDamBreakScenario l_scenario;
 
-  //SWE_TsunamiScenario l_scenario;
-  //SWE_ArtificialTsunamiScenario l_scenario;
-  //SWE_CheckpointScenario l_scenario;
+  SWE_Scenario *s;
 
   bool isCheckpointScenario = false;
+
+  int switchScenario = 3;     //edit this to switch between scenarios
+  switch(switchScenario){
+  case 0:{
+	  s = new SWE_RadialDamBreakScenario;}break;
+  case 1:{
+	  s = new SWE_ArtificialTsunamiScenario;;}break;
+  case 2:{
+	  s = new SWE_TsunamiScenario;;}break;
+  case 3:{
+	  s = new SWE_CheckpointScenario;;
+	  isCheckpointScenario = true;}break;
+
+  }
+
+ SWE_Scenario &l_scenario = *s;
+
 
   #endif
 
@@ -220,10 +233,10 @@ int main( int argc, char** argv ) {
   #endif
   BoundaryType l_boundaryType[4];
   if(l_boundary == -1){
-	  l_boundaryType[0] = l_scenario.getBoundaryType(BND_TOP);
-	  l_boundaryType[0] = l_scenario.getBoundaryType(BND_BOTTOM);
 	  l_boundaryType[0] = l_scenario.getBoundaryType(BND_LEFT);
-	  l_boundaryType[0] = l_scenario.getBoundaryType(BND_RIGHT);
+	  l_boundaryType[1] = l_scenario.getBoundaryType(BND_RIGHT);
+	  l_boundaryType[2] = l_scenario.getBoundaryType(BND_BOTTOM);
+	  l_boundaryType[3] = l_scenario.getBoundaryType(BND_TOP);
   }else{
 	  BoundaryType b;
 	  switch(l_boundary){
@@ -234,6 +247,10 @@ int main( int argc, char** argv ) {
 	  default: b = OUTFLOW;
 	  }
 	  l_boundaryType[0] = l_boundaryType[1] = l_boundaryType[2] = l_boundaryType[3] = b;
+	  l_wavePropgationBlock.setBoundaryType(BND_LEFT, l_boundaryType[0]);
+	  l_wavePropgationBlock.setBoundaryType(BND_RIGHT, l_boundaryType[1]);
+	  l_wavePropgationBlock.setBoundaryType(BND_BOTTOM, l_boundaryType[2]);
+	  l_wavePropgationBlock.setBoundaryType(BND_TOP, l_boundaryType[3]);
   }
 
   float l_boundaryPos[4];
@@ -264,12 +281,14 @@ int main( int argc, char** argv ) {
 		  l_nX, l_nY,
 		  l_dX, l_dY );
 #endif
+
+  if(!isCheckpointScenario){
   // Write zero time step
   l_writer.writeTimeStep( l_wavePropgationBlock.getWaterHeight(),
                           l_wavePropgationBlock.getDischarge_hu(),
                           l_wavePropgationBlock.getDischarge_hv(),
                           (float) 0.);
-
+  }
 
   /**
    * Simulation.
@@ -281,30 +300,31 @@ int main( int argc, char** argv ) {
 
   //! simulation time.
   float l_t = 0.0;
+  int beginCount = 1;
   if(isCheckpointScenario) {
 	  l_t = l_scenario.continueSimulationAt();
+	  int i=0;
+	  while(l_t > l_checkPoints[i]){
+		  i++;
+	  }
+	  beginCount = i;
   }
 
   progressBar.update(l_t);
 
   unsigned int l_iterations = 0;
-//cout<<l_wavePropgationBlock.getMaxTimestep()<<endl;
 
   // loop over checkpoints
-  for(int c=1; c<=l_numberOfCheckPoints; c++) {
+  for(int c=beginCount; c<=l_numberOfCheckPoints; c++) {
 
     // do time steps until next checkpoint is reached
     while( l_t < l_checkPoints[c] ) {
       // set values in ghost cells:
       l_wavePropgationBlock.setGhostLayer();
-      
+
       // reset the cpu clock
       tools::Logger::logger.resetClockToCurrentTime("Cpu");
 
-      // approximate the maximum time step
-      // TODO: This calculation should be replaced by the usage of the wave speeds occuring during the flux computation
-      // Remark: The code is executed on the CPU, therefore a "valid result" depends on the CPU-GPU-synchronization.
-//      l_wavePropgationBlock.computeMaxTimestep();
 
       // compute numerical flux on each edge
       l_wavePropgationBlock.computeNumericalFluxes();
@@ -348,15 +368,11 @@ int main( int argc, char** argv ) {
   // write the statistics message
   progressBar.clear();
   tools::Logger::logger.printStatisticsMessage();
-cout<<"hier war ich"<<endl;
   // print the cpu time
   tools::Logger::logger.printTime("Cpu", "CPU time");
-  cout<<"hier war ich2"<<endl;
   // print the wall clock time (includes plotting)
   tools::Logger::logger.printWallClockTime(time(NULL));
-  cout<<"hier war ich3"<<endl;
   // printer iteration counter
   tools::Logger::logger.printIterationsDone(l_iterations);
-  cout<<"hier war ich4"<<endl;
   return 0;
 }

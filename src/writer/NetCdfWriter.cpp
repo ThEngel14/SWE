@@ -114,11 +114,11 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 		//dimensions
 		int l_timeDim, l_xDim, l_yDim, l_boundaryDim, l_boundaryPosDim, l_endSimulationDim;
 		nc_def_dim(dataFile, "time", NC_UNLIMITED, &l_timeDim);
-	/*	nc_def_dim(dataFile, "boundary", 4, &l_boundaryDim);
-		nc_def_dim(dataFile, "boundaryPos", 4, &l_boundaryPosDim);
-		nc_def_dim(dataFile, "endSimulation", 1, &l_endSimulationDim);*/
 		nc_def_dim(dataFile, "x", nX, &l_xDim);
 		nc_def_dim(dataFile, "y", nY, &l_yDim);
+		nc_def_dim(dataFile, "EndSimulation", 1, &l_endSimulationDim);
+		nc_def_dim(dataFile, "Boundary", 4, &l_boundaryDim);
+		nc_def_dim(dataFile, "BoundaryPos", 4, &l_boundaryPosDim);
 
 		//variables (TODO: add rest of CF-1.5)
 		int l_xVar, l_yVar;
@@ -127,18 +127,21 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 		ncPutAttText(timeVar, "long_name", "Time");
 		ncPutAttText(timeVar, "units", "seconds since simulation start"); // the word "since" is important for the paraview reader
 
-		nc_def_var(dataFile, "Boundary", NC_INT, 1, &l_boundaryDim, &boundaryVar);
-		nc_def_var(dataFile, "BoundaryPos", NC_FLOAT, 1, &l_boundaryPosDim, &boundaryPosVar);
-		nc_def_var(dataFile, "EndSimulation", NC_FLOAT, 1, &l_endSimulationDim, &endSimulationVar);
 		nc_def_var(dataFile, "x", NC_FLOAT, 1, &l_xDim, &l_xVar);
 		nc_def_var(dataFile, "y", NC_FLOAT, 1, &l_yDim, &l_yVar);
 
 		//variables, fastest changing index is on the right (C syntax), will be mirrored by the library
 		int dims[] = {l_timeDim, l_yDim, l_xDim};
+		int boundarydim[] = {l_boundaryDim};
+		int boundaryPosdim[] = {l_boundaryPosDim};
+		int esdim[] = {l_endSimulationDim};
 		nc_def_var(dataFile, "h",  NC_FLOAT, 3, dims, &hVar);
 		nc_def_var(dataFile, "hu", NC_FLOAT, 3, dims, &huVar);
 		nc_def_var(dataFile, "hv", NC_FLOAT, 3, dims, &hvVar);
 		nc_def_var(dataFile, "b",  NC_FLOAT, 2, &dims[1], &bVar);
+		nc_def_var(dataFile, "Boundary", NC_INT, 1, boundarydim, &boundaryVar);
+		nc_def_var(dataFile, "BoundaryPos", NC_FLOAT, 1,boundaryPosdim, &boundaryPosVar);
+		nc_def_var(dataFile, "EndSimulation", NC_FLOAT, 1, esdim, &endSimulationVar);
 
 
 		//set attributes to match CF-1.5 convention
@@ -177,10 +180,14 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 			}
 		}
 
-		nc_put_var_int(dataFile, boundaryVar, &boundary[0]);
-		nc_put_var_float(dataFile, boundaryPosVar, &i_boundaryPos[0]);
+		const size_t startbound[] = {0};
+		const size_t countbound[] = {4};
+		const size_t countend[] = {1};
+		nc_put_vara_int(dataFile, boundaryVar,startbound, countbound, boundary);
 
-		nc_put_var_float(dataFile, endSimulationVar, &endSimulation);
+		nc_put_vara_float(dataFile, boundaryPosVar, startbound, countbound,i_boundaryPos);
+
+		nc_put_vara_float(dataFile, endSimulationVar,startbound, countend, &endSimulation);
 	}
 }
 

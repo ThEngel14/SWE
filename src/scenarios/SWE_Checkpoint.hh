@@ -23,8 +23,8 @@ private:
 	float *hv;
 	int* boundary;
 	float* boundaryPos;
-	float* l_endSimulation;
-	float *l_time;
+	float l_endSimulation;
+	float l_time;
 	size_t xDim, yDim;
 	/**
 	 * Print error message.
@@ -58,14 +58,14 @@ public:
 		status = nc_inq_dimid(ncid, "y", &ydimid);
 		if (status != NC_NOERR) handle_error(status);
 
-		/*status = nc_inq_dimid(ncid, "boundary", &boundaryid);
+		status = nc_inq_dimid(ncid, "Boundary", &boundaryid);
 		if (status != NC_NOERR) handle_error(status);
 
-		status = nc_inq_dimid(ncid, "boundaryPos", &boundaryPosid);
+		status = nc_inq_dimid(ncid, "BoundaryPos", &boundaryPosid);
 		if (status != NC_NOERR) handle_error(status);
 
-		status = nc_inq_dimid(ncid, "endSimulation", &endSimulationid);
-		if (status != NC_NOERR) handle_error(status);*/
+		status = nc_inq_dimid(ncid, "EndSimulation", &endSimulationid);
+		if (status != NC_NOERR) handle_error(status);
 
 		status = nc_inq_dimlen(ncid, timedimid, &timeDim);
 		if (status != NC_NOERR) handle_error(status);
@@ -76,14 +76,14 @@ public:
 		status = nc_inq_dimlen(ncid, ydimid, &yDim);
 		if (status != NC_NOERR) handle_error(status);
 
-		/*status = nc_inq_dimlen(ncid, boundaryid, &boundaryDim);
+		status = nc_inq_dimlen(ncid, boundaryid, &boundaryDim);
 		if (status != NC_NOERR) handle_error(status);
 
 		status = nc_inq_dimlen(ncid, boundaryPosid, &boundaryPosDim);
 		if (status != NC_NOERR) handle_error(status);
 
 		status = nc_inq_dimlen(ncid, endSimulationid, &endSimulationDim);
-		if (status != NC_NOERR) handle_error(status);*/
+		if (status != NC_NOERR) handle_error(status);
 
 //######### get Ids
 		int hId, huId, hvId, bId, boundaryId, boundaryPosId, endSimulationId, timeId;
@@ -115,8 +115,6 @@ public:
 		// init arrays
 		boundary = (int*) malloc(4*sizeof(int));
 		boundaryPos = (float*) malloc(4*sizeof(float));
-		l_endSimulation = (float*) malloc(sizeof(float));
-		l_time = (float*) malloc(sizeof(float));
 		water = (float*) malloc(xDim*yDim*sizeof(float));
 		hu = (float*) malloc(xDim*yDim*sizeof(float));
 		hv = (float*) malloc(xDim*yDim*sizeof(float));
@@ -132,15 +130,12 @@ public:
 		status = nc_get_vara_float(ncid, boundaryPosId,startboundary, countboundary, boundaryPos);
 		if(status != NC_NOERR){handle_error(status);}
 
-
-
-		status = nc_get_var_float(ncid, endSimulationId, l_endSimulation);
+		const size_t esIndex[] = {0};
+		status = nc_get_var1_float(ncid, endSimulationId, esIndex, &l_endSimulation);
 		if(status != NC_NOERR){handle_error(status);}
 
-		const size_t starttime[] = {timeDim - 1};
-		const size_t counttime[] = {1};
-
-		status = nc_get_vara_float(ncid, timeId, starttime, counttime ,l_time);
+		const size_t tIndex[] = {timeDim-1};
+		status = nc_get_var1_float(ncid, timeId, tIndex , &l_time);
 		if(status != NC_NOERR){handle_error(status);}
 
 		const size_t startbathymetry[] = {0 ,0};
@@ -164,22 +159,22 @@ public:
 		status = nc_close(ncid);
 		if (status != NC_NOERR) handle_error(status);
 
-		/*
-		cout << "yDim: " << yDim << " xDim: " << xDim << endl;
-		cout << "Checkpoint water height:" << endl;
-		for(int i = 0; i < yDim; i++) {
+
+		//cout << "yDim: " << yDim << " xDim: " << xDim << endl;
+		//cout << "Checkpoint water height:" << endl;
+		/*for(int i = 0; i < yDim; i++) {
 			for(int j = 0; j < xDim; j++) {
 				cout << water[i*xDim + j] << " ";
 			}
 			cout << endl;
-		}
-		*/
+		}*/
+
 	};
 
 	float getWaterHeight(float x, float y){
 		int xPos = (int) (((x+getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
 		int yPos = (int) (((y+getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
-
+		//cout<<xPos<<" "<<yPos<<" "<<water[yPos*xDim + xPos]<<endl;
 		return water[yPos*xDim + xPos];
 	};
 
@@ -205,11 +200,11 @@ public:
 	}
 
 	virtual float endSimulation() {
-		return 2*l_endSimulation[0];
+		return 2*l_endSimulation;
 	};
 
 	virtual float continueSimulationAt() {
-		return l_time[0];
+		return l_time;
 	}
 
 	virtual int getxDim() {
