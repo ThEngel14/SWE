@@ -38,7 +38,7 @@ private:
 
 public:
 	/**
-	 * Open and preparing a set of nc-files for bathymetry and displacement data.
+	 * Read data from an output file in order to continue the simulation.
 	 */
 	SWE_CheckpointScenario(){
 		int ncid, timedimid, xdimid, ydimid, boundaryid, boundaryPosid, endSimulationid;
@@ -171,6 +171,11 @@ public:
 
 	};
 
+	/**
+	 * @param x x coordinate of the domain
+	 * @param y y coordinate of the domain
+	 * @return the water height at the given point
+	 */
 	float getWaterHeight(float x, float y){
 		int xPos = (int) (((x-getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
 		int yPos = (int) (((y-getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
@@ -179,6 +184,11 @@ public:
 		return water[yPos*xDim + xPos];
 	};
 
+	/**
+	 * @param x x coordinate of the domain
+	 * @param y y coordinate of the domain
+	 * @return the bathymetry at the given point
+	 */
 	float getBathymetry(float x, float y){
 		int xPos = (int) (((x-getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
 		int yPos = (int) (((y-getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
@@ -186,6 +196,11 @@ public:
 		return bathymetry[yPos*xDim + xPos];
 	};
 
+	/**
+	 * @param x x coordinate of the domain
+	 * @param y y coordinate of the domain
+	 * @return the velocity u at the given point
+	 */
 	float getVeloc_u(float x, float y) {
 		int xPos = (int) (((x-getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
 		int yPos = (int) (((y-getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
@@ -193,6 +208,11 @@ public:
 		return hu[yPos*xDim + xPos]/water[yPos*xDim + xPos];
 	}
 
+	/**
+	 * @param x x coordinate of the domain
+	 * @param y y coordinate of the domain
+	 * @return the velocity v at the given point
+	 */
 	float getVeloc_v(float x, float y) {
 		int xPos = (int) (((x-getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
 		int yPos = (int) (((y-getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
@@ -200,22 +220,37 @@ public:
 		return hv[yPos*xDim + xPos]/water[yPos*xDim + xPos];
 	}
 
+	/**
+	 * @return the end of the simulation set in the output file
+	 */
 	virtual float endSimulation() {
 		return l_endSimulation;
 	};
 
+	/**
+	 * @return the time where the simulation has to be continued
+	 */
 	virtual float continueSimulationAt() {
 		return l_time;
 	}
 
+	/**
+	 * @return the number of already calculated steps in the output file
+	 */
 	virtual int calculatedSteps() {
 		return timeDim;
 	}
 
+	/**
+	 * @return the dimension of x
+	 */
 	virtual int getxDim() {
 		return xDim;
 	}
 
+	/**
+	 * @return the dimension of y
+	 */
 	virtual int getyDim() {
 		return yDim;
 	}
