@@ -151,9 +151,9 @@ int main( int argc, char** argv ) {
 
   SWE_Scenario *s;
 
-  bool isCheckpointScenario = false;
 
-  int switchScenario = 3;     //edit this to switch between scenarios
+  bool isCheckpointScenario = false;
+  int switchScenario = 0;     //edit this to switch between scenarios
   switch(switchScenario){
   case 0:{
 	  s = new SWE_RadialDamBreakScenario;}break;
@@ -176,9 +176,6 @@ int main( int argc, char** argv ) {
 	  l_nX = l_scenario.getxDim();
 	  l_nY = l_scenario.getyDim();
   }
-
-  //! number of checkpoints for visualization (at each checkpoint in time, an output file is written).
-  int l_numberOfCheckPoints = 20;
 
   //! size of a single cell in x- and y-direction
   float l_dX, l_dY;
@@ -208,12 +205,23 @@ int main( int argc, char** argv ) {
   //! time when the simulation ends.
   float l_endSimulation = l_time > 0 ? l_time : l_scenario.endSimulation();
 
+  //! number of checkpoints for visualization (at each checkpoint in time, an output file is written).
+    int l_numberOfCheckPoints = 20;
+    if(isCheckpointScenario) {
+    	/*
+    	cout << "Calculated Steps: " << l_scenario.calculatedSteps() << endl;
+    	cout << "Continue At: " << l_scenario.continueSimulationAt() << endl;
+    	cout << "alpha: " << (l_scenario.calculatedSteps()/l_scenario.continueSimulationAt()) << endl;
+    	*/
+  	    l_numberOfCheckPoints = (int) ((l_endSimulation - l_scenario.continueSimulationAt())*(l_scenario.calculatedSteps()/l_scenario.continueSimulationAt()));
+    }
+
   //! checkpoints when output files are written.
   float* l_checkPoints = new float[l_numberOfCheckPoints+1];
 
   // compute the checkpoints in time
   for(int cp = 0; cp <= l_numberOfCheckPoints; cp++) {
-     l_checkPoints[cp] = cp*(l_endSimulation/l_numberOfCheckPoints);
+     l_checkPoints[cp] = l_scenario.continueSimulationAt() + cp*((l_endSimulation-l_scenario.continueSimulationAt())/l_numberOfCheckPoints);
   }
 
   // Init fancy progressbar

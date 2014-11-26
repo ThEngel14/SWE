@@ -64,6 +64,7 @@ class SWE_Scenario {
 
     virtual float endSimulation() { return 0.1f; };
     virtual float continueSimulationAt() { return 0.0f; };
+    virtual int calculatedSteps() { return 0; };
     virtual int getxDim() { return 0; };
     virtual int getyDim() { return 0; };
     

@@ -25,7 +25,7 @@ private:
 	float* boundaryPos;
 	float l_endSimulation;
 	float l_time;
-	size_t xDim, yDim;
+	size_t xDim, yDim, timeDim;
 	/**
 	 * Print error message.
 	 */
@@ -47,7 +47,7 @@ public:
 		if(status != NC_NOERR){handle_error(status);}
 
 //######## get Dimensions
-		size_t timeDim, boundaryDim, boundaryPosDim, endSimulationDim;
+		size_t boundaryDim, boundaryPosDim, endSimulationDim;
 
 		status = nc_inq_dimid(ncid, "time", &timedimid);
 		if (status != NC_NOERR) handle_error(status);
@@ -172,39 +172,44 @@ public:
 	};
 
 	float getWaterHeight(float x, float y){
-		int xPos = (int) (((x+getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
-		int yPos = (int) (((y+getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
+		int xPos = (int) (((x-getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
+		int yPos = (int) (((y-getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
 		//cout<<xPos<<" "<<yPos<<" "<<water[yPos*xDim + xPos]<<endl;
+
 		return water[yPos*xDim + xPos];
 	};
 
 	float getBathymetry(float x, float y){
-		int xPos = (int) (((x+getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
-		int yPos = (int) (((y+getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
+		int xPos = (int) (((x-getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
+		int yPos = (int) (((y-getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
 
 		return bathymetry[yPos*xDim + xPos];
 	};
 
 	float getVeloc_u(float x, float y) {
-		int xPos = (int) (((x+getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
-		int yPos = (int) (((y+getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
+		int xPos = (int) (((x-getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
+		int yPos = (int) (((y-getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
 
 		return hu[yPos*xDim + xPos]/water[yPos*xDim + xPos];
 	}
 
 	float getVeloc_v(float x, float y) {
-		int xPos = (int) (((x+getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
-		int yPos = (int) (((y+getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
+		int xPos = (int) (((x-getBoundaryPos(BND_LEFT))*xDim)/(getBoundaryPos(BND_RIGHT) - getBoundaryPos(BND_LEFT)));
+		int yPos = (int) (((y-getBoundaryPos(BND_BOTTOM))*yDim)/(getBoundaryPos(BND_TOP) - getBoundaryPos(BND_BOTTOM)));
 
 		return hv[yPos*xDim + xPos]/water[yPos*xDim + xPos];
 	}
 
 	virtual float endSimulation() {
-		return 2*l_endSimulation;
+		return l_endSimulation;
 	};
 
 	virtual float continueSimulationAt() {
 		return l_time;
+	}
+
+	virtual int calculatedSteps() {
+		return timeDim;
 	}
 
 	virtual int getxDim() {
