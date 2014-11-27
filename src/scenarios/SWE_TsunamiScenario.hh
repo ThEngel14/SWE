@@ -16,17 +16,14 @@
 
 //#define BATHFILE "NCScenario/artificialtsunami_bathymetry_1000.nc"
 //#define DISPFILE "NCScenario/artificialtsunami_displ_1000.nc"
-//#define BATHFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_bath.nc"
-//#define DISPFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_displ.nc"
-#define BATHFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_bath.nc"
-#define DISPFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_displ.nc"
+#define BATHFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_bath.nc"
+#define DISPFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_displ.nc"
+//#define BATHFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_bath.nc"
+//#define DISPFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_displ.nc"
 
 class SWE_TsunamiScenario: public SWE_Scenario {
 private:
-	//float numberOfCells;
-	//float xscale;
-	//float yscale;
-	//float zscale;
+
 	struct Position{
 		int x;
 		int y;
@@ -76,28 +73,28 @@ private:
 			do{
 				dif = std::abs(xBathVals[i] - x);
 				i++;
-			}while(i<xBathSize && std::abs(xBathVals[i] - x) < dif);
+			}while(i<xBathSize && std::fabs(xBathVals[i] - x) < dif);
 			ret.x = i-1;
 
 			i=0;
 			do{
 				dif = std::abs(yBathVals[i] - y);
 				i++;
-			}while(i<yBathSize && std::abs(yBathVals[i] - y) < dif);
+			}while(i<yBathSize && std::fabs(yBathVals[i] - y) < dif);
 			ret.y = i-1;
 		}else{
 			i=0;
 			do{
 				dif = std::abs(xDisplVals[i] - x);
 				i++;
-			}while(i<xDisplSize && std::abs(xDisplVals[i] - x) < dif);
+			}while(i<xDisplSize && std::fabs(xDisplVals[i] - x) < dif);
 			ret.x = i-1;
 
 			i=0;
 			do{
 				dif = std::abs(yDisplVals[i] - y);
 				i++;
-			}while(i<yDisplSize && std::abs(yDisplVals[i] - y) < dif);
+			}while(i<yDisplSize && std::fabs(yDisplVals[i] - y) < dif);
 			ret.y = i-1;
 		}
 		return ret;
@@ -187,7 +184,6 @@ private:
 	 *
 	 */
 	float computeDisplacement(float x, float y){
-		//if(std::fabs(x) < 1 && std::fabs(y)<1)return 100.0f;
 		if(x  >= xDisplMinValue && x <= xDisplMaxValue
 				&& y >= yDisplMinValue && y <= yDisplMaxValue){ //true if x and y are in the displ.-rect
 			Position posDisp = getClosestPosition(x,y,DISPLACEMENT);
@@ -196,38 +192,19 @@ private:
 		return 0.0f;
 	}
 
-	/**
-	 * Scales all values of the arrays with a predefined number to ensure the correct proportion of the scenario.
-	 */
-	/*void scaleAllVals(){
-
-		for(int i=0;i < xBathSize;i++){
-			xBathVals[i] *= xscale;
+	float getBathymetryBefore(float x, float y){
+		Position pos = getClosestPosition(x,y,BATHYMETRY);
+		float bath = zBathVals[pos.y * xBathSize + pos.x];
+		if(bath >= -20.0f && bath <= 20.0f ){
+			if(bath >= 0){
+				return 20.0f ;
+			}else{
+				return -20.0f ;
+			}
 		}
+		return bath;
+	}
 
-		for(int i=0;i < yBathSize;i++){
-			yBathVals[i] *= yscale;
-		}
-
-		int zBathSize = xBathSize * yBathSize;
-		for(int i=0;i < zBathSize;i++){
-			zBathVals[i] *= zscale;
-		}
-
-		for(int i=0;i < xDisplSize;i++){
-			xDisplVals[i] *= xscale;
-		}
-		for(int i=0;i < yDisplSize;i++){
-			yDisplVals[i] *= yscale;
-		}
-
-		int zDisplSize = xDisplSize * yDisplSize;
-		for(int i=0;i < zDisplSize;i++){
-			zDisplVals[i] *= zscale;
-		}
-
-
-	}*/
 public:
 	/**
 	 * Open and preparing a set of nc-files for bathymetry and displacement data.
@@ -249,11 +226,6 @@ public:
 		zDisplVals = (float*)malloc(xDisplSize * yDisplSize * sizeof(float));
 		readcloseNetcdf(ncDisplid, xDisplSize, yDisplSize, xDisplVals, yDisplVals, zDisplVals);
 
-		//xscale = numberOfCells / (xBathVals[xBathSize-1] - xBathVals[0]);
-		//yscale = numberOfCells / (yBathVals[yBathSize-1] - yBathVals[0]);
-		//zscale = (xscale + yscale) / 2.0f;
-		//scaleAllVals();
-
 		xBathMaxValue = xBathVals[xBathSize-1];
 		yBathMaxValue = yBathVals[yBathSize-1];
 		xDisplMaxValue = xDisplVals[xDisplSize-1];
@@ -266,28 +238,11 @@ public:
 	};
 
 	float getWaterHeight(float x, float y){
-		Position pos = getClosestPosition(x,y,BATHYMETRY);
-		return -std::min(zBathVals[pos.y * xBathSize +  pos.x], 0.0f);
+		return -std::min(getBathymetryBefore(x,y), 0.f);
 	};
 
 	float getBathymetry(float x, float y){
-		Position pos = getClosestPosition(x,y,BATHYMETRY);
-		float bath = zBathVals[pos.y * xBathSize + pos.x] + computeDisplacement(x,y);
-		if(bath >= -20 && bath <= 20 ){
-			if(bath > 0){
-				return 20 ;
-			}else{
-				return -20 ;
-				}
-		}
-		/*if(bath >= -20 * zscale && bath <= 20 * zscale){
-			if(bath > 0){
-				return 20 * zscale;
-			}else{
-				return -20 * zscale;
-			}
-		}*/
-		return bath;
+		return getBathymetryBefore(x,y) + computeDisplacement(x,y);
 	};
 
 	virtual float endSimulation() { return (float) 15; };

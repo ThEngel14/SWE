@@ -255,10 +255,10 @@ int main( int argc, char** argv ) {
 	  default: b = OUTFLOW;
 	  }
 	  l_boundaryType[0] = l_boundaryType[1] = l_boundaryType[2] = l_boundaryType[3] = b;
-	  l_wavePropgationBlock.setBoundaryType(BND_LEFT, l_boundaryType[0]);
-	  l_wavePropgationBlock.setBoundaryType(BND_RIGHT, l_boundaryType[1]);
-	  l_wavePropgationBlock.setBoundaryType(BND_BOTTOM, l_boundaryType[2]);
-	  l_wavePropgationBlock.setBoundaryType(BND_TOP, l_boundaryType[3]);
+	  l_wavePropgationBlock.setBoundaryType(BND_LEFT, b);
+	  l_wavePropgationBlock.setBoundaryType(BND_RIGHT, b);
+	  l_wavePropgationBlock.setBoundaryType(BND_BOTTOM, b);
+	  l_wavePropgationBlock.setBoundaryType(BND_TOP, b);
   }
 
   float l_boundaryPos[4];
