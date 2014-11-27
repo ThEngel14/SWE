@@ -153,7 +153,7 @@ int main( int argc, char** argv ) {
 
 
   bool isCheckpointScenario = false;
-  int switchScenario = 0;     //edit this to switch between scenarios
+  int switchScenario = 2;     //edit this to switch between scenarios
   switch(switchScenario){
   case 0:{
 	  s = new SWE_RadialDamBreakScenario;}break;
