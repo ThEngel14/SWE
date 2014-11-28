@@ -192,15 +192,18 @@ private:
 		return 0.0f;
 	}
 
+	/**
+	 * Return the bathymetry before the earthquake.
+	 * @param x x-coordinate
+	 * @param y y-coordinate
+	 *
+	 */
 	float getBathymetryBefore(float x, float y){
 		Position pos = getClosestPosition(x,y,BATHYMETRY);
 		float bath = zBathVals[pos.y * xBathSize + pos.x];
-		if(bath >= -20.0f && bath <= 20.0f ){
-			if(bath >= 0){
-				return 20.0f ;
-			}else{
-				return -20.0f ;
-			}
+		float absBath = std::fabs(bath);
+		if( absBath < 20.0f){
+			bath = bath / absBath * 20.0f;
 		}
 		return bath;
 	}
@@ -242,7 +245,10 @@ public:
 	};
 
 	float getBathymetry(float x, float y){
-		return getBathymetryBefore(x,y) + computeDisplacement(x,y);
+		float bath = getBathymetryBefore(x,y);
+
+		assert( bath > 0? getWaterHeight(x,y) < zeroTol: getWaterHeight(x,y) = -bath);
+		return bath + computeDisplacement(x,y);
 	};
 
 	virtual float endSimulation() { return (float) 15; };

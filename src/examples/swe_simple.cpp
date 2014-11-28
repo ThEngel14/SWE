@@ -37,7 +37,6 @@
 #include "scenarios/SWE_TsunamiScenario.hh"
 #include "scenarios/SWE_ArtificialTsunamiScenario.hh"
 #include "scenarios/SWE_Checkpoint.hh"
-
 //#ifndef CUDA
 //#include "blocks/SWE_WavePropagationBlock.hh"
 //#else
@@ -186,7 +185,7 @@ int main( int argc, char** argv ) {
 
   // create a single wave propagation block
   #ifndef CUDA
-  swe_dimensionalsplitting l_wavePropgationBlock(l_nX,l_nY,l_dX,l_dY);
+  swe_dimensionalsplitting l_dimensionalsplitting(l_nX,l_nY,l_dX,l_dY);
   #else
   SWE_WavePropagationBlockCuda l_wavePropgationBlock(l_nX,l_nY,l_dX,l_dY);
   #endif
@@ -199,7 +198,7 @@ int main( int argc, char** argv ) {
   l_originY = l_scenario.getBoundaryPos(BND_BOTTOM);
 
   // initialize the wave propagation block
-  l_wavePropgationBlock.initScenario(l_originX, l_originY, l_scenario);
+  l_dimensionalsplitting.initScenario(l_originX, l_originY, l_scenario);
 
 
   //! time when the simulation ends.
@@ -255,10 +254,10 @@ int main( int argc, char** argv ) {
 	  default: b = OUTFLOW;
 	  }
 	  l_boundaryType[0] = l_boundaryType[1] = l_boundaryType[2] = l_boundaryType[3] = b;
-	  l_wavePropgationBlock.setBoundaryType(BND_LEFT, b);
-	  l_wavePropgationBlock.setBoundaryType(BND_RIGHT, b);
-	  l_wavePropgationBlock.setBoundaryType(BND_BOTTOM, b);
-	  l_wavePropgationBlock.setBoundaryType(BND_TOP, b);
+	  l_dimensionalsplitting.setBoundaryType(BND_LEFT, b);
+	  l_dimensionalsplitting.setBoundaryType(BND_RIGHT, b);
+	  l_dimensionalsplitting.setBoundaryType(BND_BOTTOM, b);
+	  l_dimensionalsplitting.setBoundaryType(BND_TOP, b);
   }
 
   float l_boundaryPos[4];
@@ -271,7 +270,7 @@ int main( int argc, char** argv ) {
 #ifdef WRITENETCDF
   //construct a NetCdfWriter
   io::NetCdfWriter l_writer( l_fileName,
-		  l_wavePropgationBlock.getBathymetry(),
+		  l_dimensionalsplitting.getBathymetry(),
 		  l_boundarySize,
 		  l_boundaryType,
 		  l_boundaryPos,
@@ -284,7 +283,7 @@ int main( int argc, char** argv ) {
 #else
   // consturct a VtkWriter
   io::VtkWriter l_writer( l_fileName,
-		  l_wavePropgationBlock.getBathymetry(),
+		  l_dimensionalsplitting.getBathymetry(),
 		  l_boundarySize,
 		  l_nX, l_nY,
 		  l_dX, l_dY );
@@ -292,9 +291,9 @@ int main( int argc, char** argv ) {
 
   if(!isCheckpointScenario){
   // Write zero time step
-  l_writer.writeTimeStep( l_wavePropgationBlock.getWaterHeight(),
-                          l_wavePropgationBlock.getDischarge_hu(),
-                          l_wavePropgationBlock.getDischarge_hv(),
+  l_writer.writeTimeStep( l_dimensionalsplitting.getWaterHeight(),
+                          l_dimensionalsplitting.getDischarge_hu(),
+                          l_dimensionalsplitting.getDischarge_hv(),
                           (float) 0.);
   }
 
@@ -328,20 +327,20 @@ int main( int argc, char** argv ) {
     // do time steps until next checkpoint is reached
     while( l_t < l_checkPoints[c] ) {
       // set values in ghost cells:
-      l_wavePropgationBlock.setGhostLayer();
+      l_dimensionalsplitting.setGhostLayer();
 
       // reset the cpu clock
       tools::Logger::logger.resetClockToCurrentTime("Cpu");
 
 
       // compute numerical flux on each edge
-      l_wavePropgationBlock.computeNumericalFluxes();
+      l_dimensionalsplitting.computeNumericalFluxes();
 
       //! maximum allowed time step width.
-      float l_maxTimeStepWidth = l_wavePropgationBlock.getMaxTimestep();
+      float l_maxTimeStepWidth = l_dimensionalsplitting.getMaxTimestep();
 
       // update the cell values
-      l_wavePropgationBlock.updateUnknowns(l_maxTimeStepWidth);
+      l_dimensionalsplitting.updateUnknowns(l_maxTimeStepWidth);
 
       // update the cpu time in the logger
       tools::Logger::logger.updateTime("Cpu");
@@ -364,9 +363,9 @@ int main( int argc, char** argv ) {
     //cout << "**********************\n*****************" << endl;
 
     // write output
-    l_writer.writeTimeStep( l_wavePropgationBlock.getWaterHeight(),
-                            l_wavePropgationBlock.getDischarge_hu(),
-                            l_wavePropgationBlock.getDischarge_hv(),
+    l_writer.writeTimeStep( l_dimensionalsplitting.getWaterHeight(),
+                            l_dimensionalsplitting.getDischarge_hu(),
+                            l_dimensionalsplitting.getDischarge_hv(),
                             l_t);
   }
 

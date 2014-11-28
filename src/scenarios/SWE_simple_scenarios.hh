@@ -53,7 +53,7 @@ class SWE_RadialDamBreakScenario : public SWE_Scenario {
       //if(x > 10 &&  x < 20 && y >  10 && y < 20)
       //    return 5.0f;
       //else
-          return 0.f;
+      return 0.f;
 
 
     };
