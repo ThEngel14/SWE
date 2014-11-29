@@ -33,6 +33,7 @@
 
 
 #include "blocks/swe_dimensionalsplitting.hh"
+#include "blocks/SWE_WavePropagationBlock.cpp"
 #include "scenarios/SWE_Scenario.hh"
 #include "scenarios/SWE_TsunamiScenario.hh"
 #include "scenarios/SWE_ArtificialTsunamiScenario.hh"
@@ -152,7 +153,7 @@ int main( int argc, char** argv ) {
 
 
   bool isCheckpointScenario = false;
-  int switchScenario = 2;     //edit this to switch between scenarios
+  int switchScenario = 1;     //edit this to switch between scenarios
   switch(switchScenario){
   case 0:{
 	  s = new SWE_RadialDamBreakScenario;}break;

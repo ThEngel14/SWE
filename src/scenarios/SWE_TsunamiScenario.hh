@@ -14,10 +14,10 @@
 #include <netcdf.h>
 //See https://www.unidata.ucar.edu/software/netcdf/docs/netcdf-c.pdf for netcdf instructions
 
-//#define BATHFILE "NCScenario/artificialtsunami_bathymetry_1000.nc"
-//#define DISPFILE "NCScenario/artificialtsunami_displ_1000.nc"
-#define BATHFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_bath.nc"
-#define DISPFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_displ.nc"
+#define BATHFILE "NCScenario/artificialtsunami_bathymetry_1000.nc"
+#define DISPFILE "NCScenario/artificialtsunami_displ_1000.nc"
+//#define BATHFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_bath.nc"
+//#define DISPFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_displ.nc"
 //#define BATHFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_bath.nc"
 //#define DISPFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_displ.nc"
 
@@ -201,10 +201,6 @@ private:
 	float getBathymetryBefore(float x, float y){
 		Position pos = getClosestPosition(x,y,BATHYMETRY);
 		float bath = zBathVals[pos.y * xBathSize + pos.x];
-		float absBath = std::fabs(bath);
-		if( absBath < 20.0f){
-			bath = bath / absBath * 20.0f;
-		}
 		return bath;
 	}
 
@@ -241,14 +237,24 @@ public:
 	};
 
 	float getWaterHeight(float x, float y){
-		return -std::min(getBathymetryBefore(x,y), 0.f);
+		float bath = getBathymetryBefore(x,y);
+		float absBath = std::fabs(bath);
+		if( absBath < 20.0f){
+			bath = bath / absBath * 20.0f;
+		}
+
+		return -std::min(bath, 0.f);
 	};
 
 	float getBathymetry(float x, float y){
-		float bath = getBathymetryBefore(x,y);
+		float bath = getBathymetryBefore(x,y) + computeDisplacement(x,y);
 
 		assert( bath > 0? getWaterHeight(x,y) < zeroTol: getWaterHeight(x,y) = -bath);
-		return bath + computeDisplacement(x,y);
+		float absBath = std::fabs(bath);
+		if( absBath < 20.0f){
+			bath = bath / absBath * 20.0f;
+		}
+		return bath;
 	};
 
 	virtual float endSimulation() { return (float) 15; };

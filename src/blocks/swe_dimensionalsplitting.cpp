@@ -55,7 +55,7 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
 		dt = std::numeric_limits<float>::max();
 	}
 
-	for (int i = 1; i < nx+2; i++) {
+	for (int i = 1; i < nx+1; i++) {
 		for (int j=1; j < ny+1; j++) {
 		   	h[i][j] -= (dt / dx) * (hRight[i - 1][j - 1] + hLeft[i][j-1]);
 			hu[i][j] -= (dt / dx) * (huRight[i - 1][j - 1] + huLeft[i][j-1]);
@@ -82,7 +82,7 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
 	}
 
 	for (int i = 1; i < nx+1; i++) {
-	  	for (int j=1; j < ny+2; j++) {
+	  	for (int j=1; j < ny+1; j++) {
 	   		h[i][j] -= (dt / dy) * (hAbove[i-1][j - 1] + hBelow[i-1][j]);
 	   		hv[i][j] -= (dt / dy) * (hvAbove[i-1][j - 1] + hvBelow[i-1][j]);
 	   	}

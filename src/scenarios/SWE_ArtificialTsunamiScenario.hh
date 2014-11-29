@@ -15,12 +15,17 @@ class SWE_ArtificialTsunamiScenario: public SWE_Scenario {
 private:
 
 	float computeDisplacement(float x, float y){
-		if(std::fabs(x) <= 500 && std::fabs(y) <=500){
-			float dx = std::sin(((x/500)+1)*M_PI);
-			float dy = - ((y/500)*(y/500)) + 1;
-			return 5  * dx * dy;
+		if(std::fabs(x) <= 500.0f && std::fabs(y) <= 500.0f){
+			float dx = std::sin(((x/500.0f)+1)*M_PI);
+			float dy = - ((y/500)*(y/500.0f)) + 1;
+			return 5.0f  * dx * dy;
 		}
 		return 0.0f;
+	}
+
+	float getBathymetryBefore(float x, float y){
+		float bath = -100.0f;
+		return bath;
 	}
 public:
 	SWE_ArtificialTsunamiScenario(){
@@ -28,20 +33,25 @@ public:
 	};
 
 	float getWaterHeight(float x, float y){
-		return 100.0f; //-std::min(-100.0f,0.0f);
+		float bath = getBathymetryBefore(x,y);
+		float absBath = std::fabs(bath);
+		if( absBath < 20.0f){
+			bath = bath / absBath * 20.0f;
+		}
+		return -std::min(bath,0.0f);
 	};
 
 	float getBathymetry(float x, float y){
-		float bath = -100.0f + computeDisplacement(x,y);
-		if(bath >= -20  && bath <= 20 ){
-			if(bath > 0){
-				return 20 ;
-			}else{
-				return -20;
-			}
+		float bath = getBathymetryBefore(x,y) + computeDisplacement(x,y);
+
+		float absBath = std::fabs(bath);
+		if( absBath < 20.0f){
+			bath = bath / absBath * 20.0f;
 		}
 		return bath;
 	};
+
+
 	virtual float endSimulation() { return (float) 15; };
 
 	/**
