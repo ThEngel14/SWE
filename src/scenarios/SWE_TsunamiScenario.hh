@@ -249,7 +249,6 @@ public:
 	float getBathymetry(float x, float y){
 		float bath = getBathymetryBefore(x,y) + computeDisplacement(x,y);
 
-		assert( bath > 0? getWaterHeight(x,y) < zeroTol: getWaterHeight(x,y) = -bath);
 		float absBath = std::fabs(bath);
 		if( absBath < 20.0f){
 			bath = bath / absBath * 20.0f;
