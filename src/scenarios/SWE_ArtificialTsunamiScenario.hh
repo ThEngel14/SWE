@@ -71,13 +71,15 @@ public:
 		return bath;
 	};
 
-
+	/**
+	 *@return default simulation time 15 seconds
+	 */
 	virtual float endSimulation() { return (float) 15; };
 
 	/**
 	 * @param edge BoundaryEdge to request the BoundaryType
 	 *
-	 * @return the BoundaryType for the given edge
+	 * @return the default BoundaryType for the given edge: WALL
 	 */
 	   virtual BoundaryType getBoundaryType(BoundaryEdge edge) { return WALL; };
 
