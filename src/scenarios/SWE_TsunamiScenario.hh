@@ -14,10 +14,10 @@
 #include <netcdf.h>
 //See https://www.unidata.ucar.edu/software/netcdf/docs/netcdf-c.pdf for netcdf instructions
 
-#define BATHFILE "NCScenario/artificialtsunami_bathymetry_1000.nc"
-#define DISPFILE "NCScenario/artificialtsunami_displ_1000.nc"
-//#define BATHFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_bath.nc"
-//#define DISPFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_displ.nc"
+//#define BATHFILE "NCScenario/artificialtsunami_bathymetry_1000.nc"
+//#define DISPFILE "NCScenario/artificialtsunami_displ_1000.nc"
+#define BATHFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_bath.nc"
+#define DISPFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_displ.nc"
 //#define BATHFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_bath.nc"
 //#define DISPFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_displ.nc"
 
@@ -178,10 +178,10 @@ private:
 	};
 
 	/**
-	 * Determine the value of the displacement dependend of the given position.
-	 * @param x x-coordinate
-	 * @param y y-coordinate
-	 *
+	 * Return the displacement at the given position (x,y)
+	 * @param x x-position of the point
+	 * @param y y-position of the point
+	 * @return displacement at the point (x,y)
 	 */
 	float computeDisplacement(float x, float y){
 		if(x  >= xDisplMinValue && x <= xDisplMaxValue
@@ -193,10 +193,10 @@ private:
 	}
 
 	/**
-	 * Return the bathymetry before the earthquake.
-	 * @param x x-coordinate
-	 * @param y y-coordinate
-	 *
+	 * Return the bathymetry without displacement at the given position (x,y)
+	 * @param x x-position of the point
+	 * @param y y-position of the point
+	 * @return bathymetry at the point (x,y)
 	 */
 	float getBathymetryBefore(float x, float y){
 		Position pos = getClosestPosition(x,y,BATHYMETRY);
@@ -235,7 +235,12 @@ public:
 		yDisplMinValue = yDisplVals[0];
 
 	};
-
+	/**
+	 * Return the water height at the given position (x,y)
+	 * @param x x-position of the point
+	 * @param y y-position of the point
+	 * @return wather height at the point (x,y)
+	 */
 	float getWaterHeight(float x, float y){
 		float bath = getBathymetryBefore(x,y);
 		float absBath = std::fabs(bath);
@@ -245,7 +250,12 @@ public:
 
 		return -std::min(bath, 0.f);
 	};
-
+	/**
+	 * Return the bathymetry including displacement at the given position (x,y)
+	 * @param x x-position of the point
+	 * @param y y-position of the point
+	 * @return bathymetry + displacement at the point (x,y)
+	 */
 	float getBathymetry(float x, float y){
 		float bath = getBathymetryBefore(x,y) + computeDisplacement(x,y);
 

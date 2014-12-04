@@ -13,7 +13,12 @@
 
 class SWE_ArtificialTsunamiScenario: public SWE_Scenario {
 private:
-
+	/**
+	 * Return the displacement at the given position (x,y)
+	 * @param x x-position of the point
+	 * @param y y-position of the point
+	 * @return displacement at the point (x,y)
+	 */
 	float computeDisplacement(float x, float y){
 		if(std::fabs(x) <= 500.0f && std::fabs(y) <= 500.0f){
 			float dx = std::sin(((x/500.0f)+1)*M_PI);
@@ -22,16 +27,25 @@ private:
 		}
 		return 0.0f;
 	}
-
+	/**
+	 * Return the bathymetry without displacement at the given position (x,y)
+	 * @param x x-position of the point
+	 * @param y y-position of the point
+	 * @return bathymetry at the point (x,y)
+	 */
 	float getBathymetryBefore(float x, float y){
 		float bath = -100.0f;
 		return bath;
 	}
 public:
-	SWE_ArtificialTsunamiScenario(){
 
-	};
 
+	/**
+	 * Return the water height at the given position (x,y)
+	 * @param x x-position of the point
+	 * @param y y-position of the point
+	 * @return wather height at the point (x,y)
+	 */
 	float getWaterHeight(float x, float y){
 		float bath = getBathymetryBefore(x,y);
 		float absBath = std::fabs(bath);
@@ -41,6 +55,12 @@ public:
 		return -std::min(bath,0.0f);
 	};
 
+	/**
+	 * Return the bathymetry including displacement at the given position (x,y)
+	 * @param x x-position of the point
+	 * @param y y-position of the point
+	 * @return bathymetry + displacement at the point (x,y)
+	 */
 	float getBathymetry(float x, float y){
 		float bath = getBathymetryBefore(x,y) + computeDisplacement(x,y);
 
