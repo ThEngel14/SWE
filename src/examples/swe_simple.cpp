@@ -1,30 +1,3 @@
-/**
- * @file
- * This file is part of SWE.
- *
- * @author Alexander Breuer (breuera AT in.tum.de, http://www5.in.tum.de/wiki/index.php/Dipl.-Math._Alexander_Breuer)
- *         Michael Bader (bader AT in.tum.de, http://www5.in.tum.de/wiki/index.php/Univ.-Prof._Dr._Michael_Bader)
- *
- * @section LICENSE
- *
- * SWE is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * SWE is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with SWE.  If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * @section DESCRIPTION
- *
- * Basic setting of SWE, which uses a wave propagation solver and an artificial or ASAGI scenario on a single block.
- */
 
 #include <cassert>
 #include <cstdlib>
@@ -38,11 +11,7 @@
 #include "scenarios/SWE_TsunamiScenario.hh"
 #include "scenarios/SWE_ArtificialTsunamiScenario.hh"
 #include "scenarios/SWE_Checkpoint.hh"
-//#ifndef CUDA
-//#include "blocks/SWE_WavePropagationBlock.hh"
-//#else
-//#include "blocks/cuda/SWE_WavePropagationBlockCuda.hh"
-//#endif
+
 
 #ifdef WRITENETCDF
 #include "writer/NetCdfWriter.hh"
@@ -50,15 +19,9 @@
 #include "writer/VtkWriter.hh"
 #endif
 
-#ifdef ASAGI
-#include "scenarios/SWE_AsagiScenario.hh"
-#else
-#include "scenarios/SWE_simple_scenarios.hh"
-#endif
 
-#ifdef READXML
-#include "tools/CXMLConfig.hpp"
-#endif
+#include "scenarios/SWE_simple_scenarios.hh"
+
 
 #include "tools/args.hh"
 #include "tools/help.hh"
@@ -74,13 +37,14 @@ int main( int argc, char** argv ) {
    */
   // Parse command line parameters
   tools::Args args;
-  #ifndef READXML
+
   args.addOption("grid-size-x", 'x', "Number of cells in x direction");
   args.addOption("grid-size-y", 'y', "Number of cells in y direction");
   args.addOption("simulation-time", 't', "Number of seconds of simulation", args.Required ,false);
-  args.addOption("boundary-condition", 'b', "1: OUTFLOW ,2:WALL ,3:INFLOW, 4:CONNECT ,5:PASSIVE", args.Required, false);
+  args.addOption("boundary-condition", 'b', "0: OUTFLOW ,1:WALL ,2:INFLOW, 3:CONNECT ,4:PASSIVE", args.Required, false);
   args.addOption("output-basepath", 'o', "Output base file name");
-  #endif
+  args.addOption("scenario", 's', "0: TsunamiScenario, 1: CheckPointsScenario ,2: ArtificialTsunamiScenario ,3:RadialDambreakScenario", args.Required, false);
+
 
   tools::Args::Result ret = args.parse(argc, argv);
 
@@ -95,82 +59,42 @@ int main( int argc, char** argv ) {
   //! number of grid cells in x- and y-direction.
   int l_nX, l_nY;
 
-  int l_time, l_boundary;
+  int l_time, l_boundary, l_scen;
 
   //! l_baseName of the plots.
   std::string l_baseName;
 
   // read command line parameters
-  #ifndef READXML
   l_nX = args.getArgument<int>("grid-size-x");
   l_nY = args.getArgument<int>("grid-size-y");
   l_time = args.getArgument<int>("simulation-time", 0);
+  //boundary type
+  l_boundary = args.getArgument<int>("boundary-condition", -1);
   l_baseName = args.getArgument<std::string>("output-basepath");
-  #endif
+  //scenario
+  l_scen = args.getArgument<int>("scenario", 0);
 
-  // read xml file
-  #ifdef READXML
-  assert(false); //TODO: not implemented.
-  if(argc != 2) {
-    s_sweLogger.printString("Aborting. Please provide a proper input file.");
-    s_sweLogger.printString("Example: ./SWE_gnu_debug_none_augrie config.xml");
-    return 1;
-  }
-  s_sweLogger.printString("Reading xml-file.");
-
-  std::string l_xmlFile = std::string(argv[1]);
-  s_sweLogger.printString(l_xmlFile);
-
-  CXMLConfig l_xmlConfig;
-  l_xmlConfig.loadConfig(l_xmlFile.c_str());
-  #endif
-
-  #ifdef ASAGI
-  /* Information about the example bathymetry grid (tohoku_gebco_ucsb3_500m_hawaii_bath.nc):
-   *
-   * Pixel node registration used [Cartesian grid]
-   * Grid file format: nf = GMT netCDF format (float)  (COARDS-compliant)
-   * x_min: -500000 x_max: 6500000 x_inc: 500 name: x nx: 14000
-   * y_min: -2500000 y_max: 1500000 y_inc: 500 name: y ny: 8000
-   * z_min: -6.48760175705 z_max: 16.1780223846 name: z
-   * scale_factor: 1 add_offset: 0
-   * mean: 0.00217145586762 stdev: 0.245563641735 rms: 0.245573241263
-   */
-
-  //simulation area
-  float simulationArea[4];
-  simulationArea[0] = -450000;
-  simulationArea[1] = 6450000;
-  simulationArea[2] = -2450000;
-  simulationArea[3] = 1450000;
-
-  SWE_AsagiScenario l_scenario( ASAGI_INPUT_DIR "tohoku_gebco_ucsb3_500m_hawaii_bath.nc",
-                                ASAGI_INPUT_DIR "tohoku_gebco_ucsb3_500m_hawaii_displ.nc",
-                                (float) 28800., simulationArea);
-  #else
 
   SWE_Scenario *s;
 
 
   bool isCheckpointScenario = false;
-  int switchScenario = 1;     //edit this to switch between scenarios
-  switch(switchScenario){
-  case 0:{
-	  s = new SWE_RadialDamBreakScenario;}break;
+  switch(l_scen){
   case 1:{
-	  s = new SWE_ArtificialTsunamiScenario;;}break;
-  case 2:{
-	  s = new SWE_TsunamiScenario;;}break;
-  case 3:{
-	  s = new SWE_CheckpointScenario;;
+	  s = new SWE_CheckpointScenario;
 	  isCheckpointScenario = true;}break;
+  case 2:{
+	  s = new SWE_ArtificialTsunamiScenario;}break;
+  case 3:{
+	  s = new SWE_RadialDamBreakScenario;}break;
+  default:
+	  s = new SWE_TsunamiScenario;
 
   }
 
  SWE_Scenario &l_scenario = *s;
 
 
-  #endif
 
   if(isCheckpointScenario) {
 	  l_nX = l_scenario.getxDim();
@@ -185,11 +109,8 @@ int main( int argc, char** argv ) {
   l_dY = (l_scenario.getBoundaryPos(BND_TOP) - l_scenario.getBoundaryPos(BND_BOTTOM) )/l_nY;
 
   // create a single wave propagation block
-  #ifndef CUDA
   swe_dimensionalsplitting l_dimensionalsplitting(l_nX,l_nY,l_dX,l_dY);
-  #else
-  SWE_WavePropagationBlockCuda l_wavePropgationBlock(l_nX,l_nY,l_dX,l_dY);
-  #endif
+
 
   //! origin of the simulation domain in x- and y-direction
   float l_originX, l_originY;
@@ -235,10 +156,8 @@ int main( int argc, char** argv ) {
   //boundary size of the ghost layers
   io::BoundarySize l_boundarySize = {{1, 1, 1, 1}};
 
-  //boundary type
-  #ifndef READXML
-  l_boundary = args.getArgument<int>("boundary-condition", -1);
-  #endif
+
+
   BoundaryType l_boundaryType[4];
   if(l_boundary == -1){
 	  l_boundaryType[0] = l_scenario.getBoundaryType(BND_LEFT);
@@ -248,10 +167,10 @@ int main( int argc, char** argv ) {
   }else{
 	  BoundaryType b;
 	  switch(l_boundary){
-	  case 2: b = WALL; break;
-	  case 3: b = INFLOW; break;
-	  case 4: b = CONNECT; break;
-	  case 5: b = PASSIVE; break;
+	  case 1: b = WALL; break;
+	  case 2: b = INFLOW; break;
+	  case 3: b = CONNECT; break;
+	  case 4: b = PASSIVE; break;
 	  default: b = OUTFLOW;
 	  }
 	  l_boundaryType[0] = l_boundaryType[1] = l_boundaryType[2] = l_boundaryType[3] = b;
