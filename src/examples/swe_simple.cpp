@@ -64,13 +64,6 @@ int main( int argc, char** argv ) {
   //! l_baseName of the plots.
   std::string l_baseName;
 
-  // read command line parameters
-  l_nX = args.getArgument<int>("grid-size-x");
-  l_nY = args.getArgument<int>("grid-size-y");
-  l_time = args.getArgument<int>("simulation-time", 0);
-  //boundary type
-  l_boundary = args.getArgument<int>("boundary-condition", -1);
-  l_baseName = args.getArgument<std::string>("output-basepath");
   //scenario
   l_scen = args.getArgument<int>("scenario", 0);
 
@@ -94,12 +87,19 @@ int main( int argc, char** argv ) {
 
  SWE_Scenario &l_scenario = *s;
 
-
-
-  if(isCheckpointScenario) {
+ // read command line parameters
+ if(isCheckpointScenario) {
 	  l_nX = l_scenario.getxDim();
 	  l_nY = l_scenario.getyDim();
-  }
+ }else{
+	  l_nX = args.getArgument<int>("grid-size-x");
+	  l_nY = args.getArgument<int>("grid-size-y");
+ }
+ l_time = args.getArgument<int>("simulation-time", l_scenario.endSimulation());
+ //boundary type
+ l_boundary = args.getArgument<int>("boundary-condition", -1);
+ l_baseName = args.getArgument<std::string>("output-basepath");
+
 
   //! size of a single cell in x- and y-direction
   float l_dX, l_dY;
@@ -122,10 +122,6 @@ int main( int argc, char** argv ) {
   // initialize the wave propagation block
   l_dimensionalsplitting.initScenario(l_originX, l_originY, l_scenario);
 
-
-  //! time when the simulation ends.
-  float l_endSimulation = l_time > 0 ? l_time : l_scenario.endSimulation();
-
   //! number of checkpoints for visualization (at each checkpoint in time, an output file is written).
     int l_numberOfCheckPoints = 20;
     if(isCheckpointScenario) {
@@ -134,7 +130,7 @@ int main( int argc, char** argv ) {
     	cout << "Continue At: " << l_scenario.continueSimulationAt() << endl;
     	cout << "alpha: " << (l_scenario.calculatedSteps()/l_scenario.continueSimulationAt()) << endl;
     	*/
-  	    l_numberOfCheckPoints = (int) ((l_endSimulation - l_scenario.continueSimulationAt())*(l_scenario.calculatedSteps()/l_scenario.continueSimulationAt()));
+  	    l_numberOfCheckPoints = (int) ((l_time - l_scenario.continueSimulationAt())*(l_scenario.calculatedSteps()/l_scenario.continueSimulationAt()));
     }
 
   //! checkpoints when output files are written.
@@ -142,11 +138,11 @@ int main( int argc, char** argv ) {
 
   // compute the checkpoints in time
   for(int cp = 0; cp <= l_numberOfCheckPoints; cp++) {
-     l_checkPoints[cp] = l_scenario.continueSimulationAt() + cp*((l_endSimulation-l_scenario.continueSimulationAt())/l_numberOfCheckPoints);
+     l_checkPoints[cp] = l_scenario.continueSimulationAt() + cp*((l_time-l_scenario.continueSimulationAt())/l_numberOfCheckPoints);
   }
 
   // Init fancy progressbar
-  tools::ProgressBar progressBar(l_endSimulation);
+  tools::ProgressBar progressBar(l_time);
 
   // write the output at time zero
   tools::Logger::logger.printOutputTime((float) 0.);
@@ -194,7 +190,7 @@ int main( int argc, char** argv ) {
 		  l_boundarySize,
 		  l_boundaryType,
 		  l_boundaryPos,
-		  l_endSimulation,
+		  l_time,
 		  isCheckpointScenario,
 		  l_nX, l_nY,
 		  l_dX, l_dY,
@@ -228,6 +224,8 @@ int main( int argc, char** argv ) {
   //! simulation time.
   float l_t = 0.0;
   int beginCount = 1;
+
+  //iterate to the next checkpoint time marker
   if(isCheckpointScenario) {
 	  l_t = l_scenario.continueSimulationAt();
 	  int i=0;
