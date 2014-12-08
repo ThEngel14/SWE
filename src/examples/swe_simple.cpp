@@ -74,7 +74,7 @@ int main( int argc, char** argv ) {
   bool isCheckpointScenario = false;
   switch(l_scen){
   case 1:{
-	  s = new SWE_CheckpointScenario;
+	  s = new SWE_CheckpointScenario("_00.nc");
 	  isCheckpointScenario = true;}break;
   case 2:{
 	  s = new SWE_ArtificialTsunamiScenario;}break;

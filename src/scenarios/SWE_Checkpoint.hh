@@ -12,8 +12,7 @@
 #include <cmath>
 #include <limits>
 #include <netcdf.h>
-
-#define CHECKPOINT_FILE "_00.nc"
+#include <cstdlib>
 
 class SWE_CheckpointScenario: public SWE_Scenario {
 private:
@@ -31,7 +30,7 @@ private:
 	 */
 	void handle_error(int status) {
 		if (status != NC_NOERR) {
-			cout<< nc_strerror(status)<<"\n";
+			printf("%s\n", nc_strerror(status));
 			exit(-1);
 		}
 	};
@@ -40,10 +39,10 @@ public:
 	/**
 	 * Read data from an output file in order to continue the simulation.
 	 */
-	SWE_CheckpointScenario(){
+	SWE_CheckpointScenario(const char *checkpoint_File){
 		int ncid, timedimid, xdimid, ydimid, boundaryid, boundaryPosid, endSimulationid;
 		int status;
-		status = nc_open(CHECKPOINT_FILE, NC_NOWRITE, &ncid);
+		status = nc_open(checkpoint_File, NC_NOWRITE, &ncid);
 		if(status != NC_NOERR){handle_error(status);}
 
 //######## get Dimensions
