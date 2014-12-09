@@ -8,7 +8,7 @@
 #include "blocks/swe_dimensionalsplitting.hh"
 #include "blocks/SWE_WavePropagationBlock.cpp"
 #include "scenarios/SWE_Scenario.hh"
-#include "scenarios/SWE_TsunamiScenario.hh"
+//#include "scenarios/SWE_TsunamiScenario.hh"
 #include "scenarios/SWE_ArtificialTsunamiScenario.hh"
 //#include "scenarios/SWE_Checkpoint.hh"
 
@@ -86,7 +86,7 @@ int main( int argc, char** argv ) {
   case 3:{
 	  s = new SWE_RadialDamBreakScenario;}break;
   default:
-	  s = new SWE_TsunamiScenario;
+	  //s = new SWE_TsunamiScenario;
 
   }
 
