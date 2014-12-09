@@ -8,20 +8,16 @@
 #include "blocks/swe_dimensionalsplitting.hh"
 #include "blocks/SWE_WavePropagationBlock.cpp"
 #include "scenarios/SWE_Scenario.hh"
-//#include "scenarios/SWE_TsunamiScenario.hh"
+#include "scenarios/SWE_TsunamiScenario.hh"
 #include "scenarios/SWE_ArtificialTsunamiScenario.hh"
-//#include "scenarios/SWE_Checkpoint.hh"
+#include "scenarios/SWE_Checkpoint.hh"
 
 
-/*
 #ifdef WRITENETCDF
 #include "writer/NetCdfWriter.hh"
 #else
 #include "writer/VtkWriter.hh"
 #endif
-*/
-
-#include "writer/Writer.hh"
 
 
 #include "scenarios/SWE_simple_scenarios.hh"
@@ -77,18 +73,15 @@ int main( int argc, char** argv ) {
 
   bool isCheckpointScenario = false;
   switch(l_scen){
-  case 1://{
-	  //s = new SWE_CheckpointScenario("_00.nc");
-	  //isCheckpointScenario = true;}break;
-	  exit(-1);
+  case 1:{
+	  s = new SWE_CheckpointScenario("_00.nc");
+	  isCheckpointScenario = true;}break;
   case 2:{
 	  s = new SWE_ArtificialTsunamiScenario;}break;
   case 3:{
 	  s = new SWE_RadialDamBreakScenario;}break;
   default:
-	  //s = new SWE_TsunamiScenario;
-	  exit(-1);
-
+	  s = new SWE_TsunamiScenario;
   }
 
  SWE_Scenario &l_scenario = *s;
@@ -189,7 +182,6 @@ int main( int argc, char** argv ) {
   l_boundaryPos[3] = l_scenario.getBoundaryPos(BND_RIGHT);
 
 
-/*
 #ifdef WRITENETCDF
   //construct a NetCdfWriter
   io::NetCdfWriter l_writer( l_fileName,
@@ -211,9 +203,8 @@ int main( int argc, char** argv ) {
 		  l_nX, l_nY,
 		  l_dX, l_dY );
 #endif
-*/
 
-  /*
+
   if(!isCheckpointScenario){
   // Write zero time step
   l_writer.writeTimeStep( l_dimensionalsplitting.getWaterHeight(),
@@ -221,7 +212,6 @@ int main( int argc, char** argv ) {
                           l_dimensionalsplitting.getDischarge_hv(),
                           (float) 0.);
   }
-  */
 
   /**
    * Simulation.
@@ -235,7 +225,6 @@ int main( int argc, char** argv ) {
   float l_t = 0.0;
   int beginCount = 1;
 
-  /*
   //iterate to the next checkpoint time marker
   if(isCheckpointScenario) {
 	  l_t = l_scenario.continueSimulationAt();
@@ -245,7 +234,6 @@ int main( int argc, char** argv ) {
 	  }
 	  beginCount = i;
   }
-  */
 
   progressBar.update(l_t);
 
@@ -292,13 +280,11 @@ int main( int argc, char** argv ) {
 
     //cout << "**********************\n*****************" << endl;
 
-    /*
     // write output
     l_writer.writeTimeStep( l_dimensionalsplitting.getWaterHeight(),
                             l_dimensionalsplitting.getDischarge_hu(),
                             l_dimensionalsplitting.getDischarge_hv(),
                             l_t);
-    */
   }
 
   /**
