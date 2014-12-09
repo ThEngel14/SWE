@@ -87,6 +87,7 @@ int main( int argc, char** argv ) {
 	  s = new SWE_RadialDamBreakScenario;}break;
   default:
 	  //s = new SWE_TsunamiScenario;
+	  exit(-1);
 
   }
 
@@ -234,6 +235,7 @@ int main( int argc, char** argv ) {
   float l_t = 0.0;
   int beginCount = 1;
 
+  /*
   //iterate to the next checkpoint time marker
   if(isCheckpointScenario) {
 	  l_t = l_scenario.continueSimulationAt();
@@ -243,6 +245,7 @@ int main( int argc, char** argv ) {
 	  }
 	  beginCount = i;
   }
+  */
 
   progressBar.update(l_t);
 
