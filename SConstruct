@@ -90,7 +90,7 @@ vars.AddVariables(
 
   BoolVariable( 'openGL_instr', 'add instructions to openGL version (requires SDL_ttf)', False ),
 
-  BoolVariable( 'writeNetCDF', 'write output in the netCDF-format', True ),
+  BoolVariable( 'writeNetCDF', 'write output in the netCDF-format', False ),
 
   BoolVariable( 'asagi', 'use ASAGI', False ),
 
@@ -121,7 +121,7 @@ vars.AddVariables(
 vars.AddVariables(
   PathVariable( 'cudaToolkitDir', 'location of the CUDA toolkit', None ),
   PathVariable( 'libSDLDir', 'location of libSDL', None),
-  PathVariable( 'netCDFDir', 'location of netCDF', None),
+  PathVariable( 'netCDFDir', 'location of netCDF', "/lrz/sys/libraries/netcdf/4.2.1.1/include"),
   PathVariable( 'asagiDir', 'location of ASAGI', None),
   PathVariable( 'libxmlDir', 'location of libxml2', None)
 )
