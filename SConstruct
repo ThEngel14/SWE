@@ -121,7 +121,7 @@ vars.AddVariables(
 vars.AddVariables(
   PathVariable( 'cudaToolkitDir', 'location of the CUDA toolkit', None ),
   PathVariable( 'libSDLDir', 'location of libSDL', None),
-  PathVariable( 'netCDFDir', 'location of netCDF', "/lrz/sys/libraries/netcdf/4.2.1.1/include/"),
+  PathVariable( 'netCDFDir', 'location of netCDF', None),
   PathVariable( 'asagiDir', 'location of ASAGI', None),
   PathVariable( 'libxmlDir', 'location of libxml2', None)
 )
