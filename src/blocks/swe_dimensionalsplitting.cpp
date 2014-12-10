@@ -34,8 +34,9 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
 	float maxWaveSpeed = (float) 0.0f;
 
 //x-sweep (vertical edges)
-#pragma omp parallel for shared(maxWaveSpeed)
+#pragma omp parallel
 {
+#pragma omp  for shared(maxWaveSpeed)
 	for (int i = 1; i < nx+2; i++) {
 	   	for (int j=1; j < ny+1; j++) {
 	   		float maxEdgeSpeed;
@@ -62,8 +63,9 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
 		dt = std::numeric_limits<float>::max();
 	}
 
-#pragma omp parallel for
+#pragma omp parallel
 {
+#pragma omp for
 	for (int i = 1; i < nx+1; i++) {
 		for (int j=1; j < ny+1; j++) {
 		   	h[i][j] -= (dt / dx) * (hRight[i - 1][j - 1] + hLeft[i][j-1]);
@@ -73,8 +75,9 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
 }
 
 //y-sweep (horizontal edges)
-#pragma omp parallel for shared(maxWaveSpeed)
+#pragma omp parallel
 {
+#pragma omp for shared(maxWaveSpeed)
 	for (int i = 1; i < nx+1; i++) {
 		for (int j=1; j < ny+2; ++j) {
 			float maxEdgeSpeed;
@@ -93,8 +96,9 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
 	}
 }
 
-#pragma omp parallel for
+#pragma omp parallel
 {
+#pragma omp for
 	for (int i = 1; i < nx+1; i++) {
 	  	for (int j=1; j < ny+1; j++) {
 	   		h[i][j] -= (dt / dy) * (hAbove[i-1][j - 1] + hBelow[i-1][j]);
