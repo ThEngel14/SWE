@@ -44,6 +44,7 @@ int main( int argc, char** argv ) {
   args.addOption("boundary-condition", 'b', "0: OUTFLOW ,1:WALL ,2:INFLOW, 3:CONNECT ,4:PASSIVE", args.Required, false);
   args.addOption("output-basepath", 'o', "Output base file name");
   args.addOption("scenario", 's', "0: TsunamiScenario, 1: CheckPointsScenario ,2: ArtificialTsunamiScenario ,3:RadialDambreakScenario", args.Required, false);
+  args.addOption("cell-size", 'c', "Number of cells that should be combined in the output", args.Required, false);
 
 
   tools::Args::Result ret = args.parse(argc, argv);
@@ -66,6 +67,8 @@ int main( int argc, char** argv ) {
 
   //scenario
   l_scen = args.getArgument<int>("scenario", 0);
+
+  int l_delta = args.getArgument<int>("cell-size", 1);
 
 
   SWE_Scenario *s;
@@ -191,6 +194,7 @@ int main( int argc, char** argv ) {
 		  l_boundaryPos,
 		  l_time,
 		  isCheckpointScenario,
+		  l_delta,
 		  l_nX, l_nY,
 		  l_dX, l_dY,
 		  l_originX, l_originY,
