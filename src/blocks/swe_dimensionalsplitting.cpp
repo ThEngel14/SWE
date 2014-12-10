@@ -11,6 +11,7 @@
 #include <cassert>
 #include <string>
 #include <limits>
+#include <omp.h>
 #include "swe_dimensionalsplitting.hh"
 
 swe_dimensionalsplitting::swe_dimensionalsplitting(int l_nx, int l_ny, float l_dx, float l_dy)
@@ -32,8 +33,9 @@ swe_dimensionalsplitting::swe_dimensionalsplitting(int l_nx, int l_ny, float l_d
 void swe_dimensionalsplitting::computeNumericalFluxes(){
 	float maxWaveSpeed = (float) 0.0f;
 
-	//x-sweep (vertical edges)
-#pragma omp for
+//x-sweep (vertical edges)
+#pragma omp parallel for shared(maxWaveSpeed)
+{
 	for (int i = 1; i < nx+2; i++) {
 	   	for (int j=1; j < ny+1; j++) {
 	   		float maxEdgeSpeed;
@@ -45,9 +47,13 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
     			huLeft[i - 1][j - 1], huRight[i - 1][j - 1],
     			maxEdgeSpeed
     		);
+				#pragma omp critical
+	    		{
 	    		maxWaveSpeed = std::max(maxWaveSpeed, maxEdgeSpeed);
+	    		}
     	}
 	}
+}
 
 	float dt;
 	if(maxWaveSpeed > zeroTol){
@@ -56,17 +62,19 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
 		dt = std::numeric_limits<float>::max();
 	}
 
-#pragma omp for
+#pragma omp parallel for
+{
 	for (int i = 1; i < nx+1; i++) {
 		for (int j=1; j < ny+1; j++) {
 		   	h[i][j] -= (dt / dx) * (hRight[i - 1][j - 1] + hLeft[i][j-1]);
 			hu[i][j] -= (dt / dx) * (huRight[i - 1][j - 1] + huLeft[i][j-1]);
 		}
 	}
+}
 
-
-	//y-sweep (horizontal edges)
-#pragma omp for
+//y-sweep (horizontal edges)
+#pragma omp parallel for shared(maxWaveSpeed)
+{
 	for (int i = 1; i < nx+1; i++) {
 		for (int j=1; j < ny+2; ++j) {
 			float maxEdgeSpeed;
@@ -83,14 +91,17 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
 			    maxWaveSpeed = std::max(maxWaveSpeed, maxEdgeSpeed);
 		}
 	}
+}
 
-#pragma omp for
+#pragma omp parallel for
+{
 	for (int i = 1; i < nx+1; i++) {
 	  	for (int j=1; j < ny+1; j++) {
 	   		h[i][j] -= (dt / dy) * (hAbove[i-1][j - 1] + hBelow[i-1][j]);
 	   		hv[i][j] -= (dt / dy) * (hvAbove[i-1][j - 1] + hvBelow[i-1][j]);
 	   	}
 	}
+}
 
 	maxTimestep = dt;
 
