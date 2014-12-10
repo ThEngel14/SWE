@@ -102,7 +102,7 @@ vars.AddVariables(
                   
   BoolVariable( 'vectorize', 'add pragmas to help vectorization (release only)', False ),
                   
-  BoolVariable( 'openmp', 'compile with OpenMP parallelization enabled', False ),
+  BoolVariable( 'openmp', 'compile with OpenMP parallelization enabled', True ),
                   
   BoolVariable( 'showVectorization', 'show loop vectorization (Intel compiler only)', False ),
 
