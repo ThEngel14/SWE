@@ -104,7 +104,7 @@ vars.AddVariables(
                   
   BoolVariable( 'openmp', 'compile with OpenMP parallelization enabled', False ),
                   
-  BoolVariable( 'showVectorization', 'show loop vectorization (Intel compiler only)', False ),
+  BoolVariable( 'showVectorization', 'show loop vectorization (Intel compiler only)', True ),
 
   EnumVariable( 'platform', 'compile for a specific platform (Intel compiler only)', 'default',
                 allowed_values=('default', 'mic' )
