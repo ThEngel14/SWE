@@ -61,6 +61,10 @@ private:
 
     /** Variable ids */
     int timeVar, hVar, huVar, hvVar, bVar, boundaryVar, boundaryPosVar, endSimulationVar;
+    /** X for averaging outputs */
+    int deltaX;
+    /** Actual cell size */
+    int ndX, ndY, ndX_extended, ndY_extended, ndX_single, ndY_single;
 
     /** Flush after every x write operation? */
     unsigned int flush;
@@ -73,6 +77,9 @@ private:
     void writeVarTimeIndependent( const Float2D &i_matrix,
                                   int i_ncVariable);
 
+    // returns the average value
+    float getAverage(const Float2D &matrix, int x_start, int y_start);
+
 
   public:
     NetCdfWriter(const std::string &i_fileName,
@@ -82,6 +89,7 @@ private:
                  const float *i_boundaryPos,
                  const float endSimulation,
                  bool isCheckPoint,
+                 int delta,
                  int i_nX, int i_nY,
                  float i_dX, float i_dY,
                  float i_originX = 0., float i_originY = 0.,

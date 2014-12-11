@@ -55,6 +55,7 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 		const float *i_boundaryPos,
 		const float endSimulation,
 		bool isCheckPoint,
+		int delta,
 		int i_nX, int i_nY,
 		float i_dX, float i_dY,
 		float i_originX, float i_originY,
@@ -94,6 +95,8 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 	} else {
 		int status;
 
+		deltaX = delta;
+
 		//create a netCDF-file, an existing file will be replaced
 		status = nc_create(fileName.c_str(), NC_NETCDF4, &dataFile);
 
@@ -111,11 +114,20 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 		std::cout << "     origin(x,y): " << i_originX << ", " << i_originY << std::endl;
 	#endif
 
+		// Calculate cell size
+		ndX_single = (int) ((1.0f * nX)/deltaX);
+		ndX_extended = (nX % deltaX != 0 ? 1 : 0);
+		ndX = ndX_single + ndX_extended;
+
+		ndY_single = (int) ((1.0f * nY)/deltaX);
+		ndY_extended = (nY % deltaX != 0 ? 1 : 0);
+		ndY = ndY_single + ndY_extended;
+
 		//dimensions
 		int l_timeDim, l_xDim, l_yDim, l_boundaryDim, l_boundaryPosDim, l_endSimulationDim;
 		nc_def_dim(dataFile, "time", NC_UNLIMITED, &l_timeDim);
-		nc_def_dim(dataFile, "x", nX, &l_xDim);
-		nc_def_dim(dataFile, "y", nY, &l_yDim);
+		nc_def_dim(dataFile, "x", ndX, &l_xDim);
+		nc_def_dim(dataFile, "y", ndY, &l_yDim);
 		nc_def_dim(dataFile, "EndSimulation", 1, &l_endSimulationDim);
 		nc_def_dim(dataFile, "Boundary", 4, &l_boundaryDim);
 		nc_def_dim(dataFile, "BoundaryPos", 4, &l_boundaryPosDim);
@@ -154,18 +166,45 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 		ncPutAttText(NC_GLOBAL, "comment", "SWE is free software and licensed under the GNU General Public License. Remark: In general this does not hold for the used input data.");
 
 		//setup grid size
-		float gridPosition = i_originX + (float).5 * i_dX;
-		for(size_t i = 0; i < nX; i++) {
-			nc_put_var1_float(dataFile, l_xVar, &i, &gridPosition);
+		float gridPosition = i_originX;
+		float offset = 0;
+		size_t counter = 0;
+		for(size_t i = 1; i <= nX; i++) {
+			offset += i_dX;
 
-			gridPosition += i_dX;
+			if(i % deltaX == 0) {
+				gridPosition += offset / 2.0f;
+
+				nc_put_var1_float(dataFile, l_xVar, &counter, &gridPosition);
+				gridPosition += offset / 2.0f;
+				offset = 0;
+				counter++;
+			}
+		}
+		if(counter < ndX) {
+			gridPosition += offset / 2.0f;
+			nc_put_var1_float(dataFile, l_xVar, &counter, &gridPosition);
 		}
 
-		gridPosition = i_originY + (float).5 * i_dY;
-		for(size_t j = 0; j < nY; j++) {
-			nc_put_var1_float(dataFile, l_yVar, &j, &gridPosition);
+		gridPosition = i_originY;
+		offset = 0;
+		counter = 0;
+		for(size_t j = 1; j <= nY; j++) {
+			offset += i_dY;
 
-			gridPosition += i_dY;
+			if(j % deltaX == 0) {
+				gridPosition += offset / 2.0f;
+
+				nc_put_var1_float(dataFile, l_yVar, &counter, &gridPosition);
+				gridPosition += offset / 2.0f;
+				offset = 0;
+				counter++;
+			}
+
+		}
+		if(counter < ndY) {
+			gridPosition += offset / 2.0f;
+			nc_put_var1_float(dataFile, l_yVar, &counter, &gridPosition);
 		}
 
 		//setup boundary type
@@ -216,12 +255,21 @@ void io::NetCdfWriter::writeVarTimeDependent( const Float2D &i_matrix,
 	//storage in Float2D is col wise
 	//read carefully, the dimensions are confusing
 	size_t start[] = {timeStep, 0, 0};
-	size_t count[] = {1, nY, 1};
-	for(unsigned int col = 0; col < nX; col++) {
+	size_t count[] = {1, ndY, 1};
+
+
+	for(unsigned int col = 0; col < ndX; col++) {
 		start[2] = col; //select col (dim "x")
+
+		float temp[ndY];
+		for(int k = 0; k < ndY; k++) {
+			temp[k] = getAverage(i_matrix, col*deltaX + boundarySize[0], k*deltaX + boundarySize[2]);
+		}
+
+
 		nc_put_vara_float(dataFile, i_ncVariable, start, count,
-				&i_matrix[col+boundarySize[0]][boundarySize[2]]); //write col
-  }
+				&temp[0]); //write col
+	}
 }
 
 /**
@@ -242,12 +290,44 @@ void io::NetCdfWriter::writeVarTimeIndependent( const Float2D &i_matrix,
 	//storage in Float2D is col wise
 	//read carefully, the dimensions are confusing
 	size_t start[] = {0, 0};
-	size_t count[] = {nY, 1};
-	for(unsigned int col = 0; col < nX; col++) {
+	size_t count[] = {ndY, 1};
+
+	for(unsigned int col = 0; col < ndX; col++) {
 		start[1] = col; //select col (dim "x")
+
+		float temp[ndY];
+		for(int k = 0; k < ndY; k++) {
+			temp[k] = getAverage(i_matrix, col*deltaX + boundarySize[0], k*deltaX + boundarySize[2]);
+		}
+
+
 		nc_put_vara_float(dataFile, i_ncVariable, start, count,
-				&i_matrix[col+boundarySize[0]][boundarySize[2]]); //write col
-  }
+				&temp[0]); //write col
+	}
+}
+
+/**
+ * Calculates and returns the average cell value of the given matrix for the rectangle ndX x ndY starting at the given coordinates
+ *
+ * @param matrix
+ * @param x_start
+ * @param y_start
+ *
+ * @return the average value
+ */
+float io::NetCdfWriter::getAverage(const Float2D &matrix, int x_start, int y_start) {
+	float value = 0;
+	int cell_count = 0;
+
+	for(int i = x_start; i < x_start + ndX_single && i <= nX; i++) {
+		for(int k = y_start; k < y_start + ndY_single && k <= nY; k++) {
+			cell_count++;
+			value += matrix[i][k];
+		}
+	}
+
+
+	return value / cell_count;
 }
 
 /**
