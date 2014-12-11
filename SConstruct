@@ -64,7 +64,7 @@ if 'buildVariablesFile' in env:
 vars.AddVariables(
   PathVariable( 'buildDir', 'where to build the code', 'build', PathVariable.PathIsDirCreate ),
 
-  EnumVariable( 'compiler', 'used compiler', 'gnu',
+  EnumVariable( 'compiler', 'used compiler', 'intel',
                 allowed_values=('gnu', 'intel', 'cray')
               ),
 
@@ -102,7 +102,7 @@ vars.AddVariables(
                   
   BoolVariable( 'vectorize', 'add pragmas to help vectorization (release only)', False ),
                   
-  BoolVariable( 'openmp', 'compile with OpenMP parallelization enabled', True ),
+  BoolVariable( 'openmp', 'compile with OpenMP parallelization enabled', False ),
                   
   BoolVariable( 'showVectorization', 'show loop vectorization (Intel compiler only)', False ),
 
