@@ -104,7 +104,7 @@ vars.AddVariables(
                   
   BoolVariable( 'openmp', 'compile with OpenMP parallelization enabled', False ),
                   
-  BoolVariable( 'showVectorization', 'show loop vectorization (Intel compiler only)', True ),
+  BoolVariable( 'showVectorization', 'show loop vectorization (Intel compiler only)', False ),
 
   EnumVariable( 'platform', 'compile for a specific platform (Intel compiler only)', 'default',
                 allowed_values=('default', 'mic' )
@@ -127,9 +127,8 @@ vars.AddVariables(
 )
 
 # set environment
-env = Environment(ENV = {'PATH': os.environ['PATH']},
-        variables=vars)
-
+env = Environment(ENV = {'PATH': os.environ['PATH'], 'INTEL_LICENSE_FILE': os.environ['INTEL_LICENSE_FILE'] },
+       variables=vars)
 # generate help text
 Help(vars.GenerateHelpText(env))
 
