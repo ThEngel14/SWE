@@ -122,13 +122,15 @@ vars.AddVariables(
   PathVariable( 'cudaToolkitDir', 'location of the CUDA toolkit', None ),
   PathVariable( 'libSDLDir', 'location of libSDL', None),
   PathVariable( 'netCDFDir', 'location of netCDF', '/lrz/sys/libraries/netcdf/4.2.1.1/'),
+# PathVariable( 'netCDFDir', 'location of netCDF', None),
   PathVariable( 'asagiDir', 'location of ASAGI', None),
   PathVariable( 'libxmlDir', 'location of libxml2', None)
 )
 
 # set environment
-env = Environment(ENV = {'PATH': os.environ['PATH'], 'INTEL_LICENSE_FILE': os.environ['INTEL_LICENSE_FILE'] },
-       variables=vars)
+ env = Environment(ENV = {'PATH': os.environ['PATH'], 'INTEL_LICENSE_FILE': os.environ['INTEL_LICENSE_FILE'] }, variables=vars)
+# env = Environment(ENV = {'PATH': os.environ['PATH']}, variables=vars)
+       
 # generate help text
 Help(vars.GenerateHelpText(env))
 

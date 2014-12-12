@@ -16,10 +16,10 @@
 
 //#define BATHFILE "NCScenario/artificialtsunami_bathymetry_1000.nc"
 //#define DISPFILE "NCScenario/artificialtsunami_displ_1000.nc"
-#define BATHFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_bath.nc"
-#define DISPFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_displ.nc"
-//#define BATHFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_bath.nc"
-//#define DISPFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_displ.nc"
+//#define BATHFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_bath.nc"
+//#define DISPFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_displ.nc"
+#define BATHFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_bath.nc"
+#define DISPFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_displ.nc"
 
 class SWE_TsunamiScenario: public SWE_Scenario {
 private:

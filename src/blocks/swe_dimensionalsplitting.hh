@@ -8,7 +8,6 @@
 #ifndef SWEDIMENSIONALSPLITTING_HH_
 #define SWEDIMENSIONALSPLITTING_HH_
 
-
 #include "tools/help.hh"
 #include "scenarios/SWE_Scenario.hh"
 #include "blocks/SWE_Block.hh"
