@@ -64,7 +64,7 @@ if 'buildVariablesFile' in env:
 vars.AddVariables(
   PathVariable( 'buildDir', 'where to build the code', 'build', PathVariable.PathIsDirCreate ),
 
-  EnumVariable( 'compiler', 'used compiler', 'intel',
+  EnumVariable( 'compiler', 'used compiler', 'gnu',
                 allowed_values=('gnu', 'intel', 'cray')
               ),
 
