@@ -35,28 +35,29 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
 
 //x-sweep (vertical edges)
 
-#pragma omp parallel for
-	for (int i = 1; i < nx+2; i++) {
-		float t_maxEdgeSpeed;
-		for (int j=1; j < ny+1; j++) {
-			float maxEdgeSpeed;
-				fwave.computeNetUpdates (
-				h[i - 1][j], h[i][j],
-				hu[i - 1][j], hu[i][j],
-				b[i - 1][j], b[i][j],
-				hLeft[i - 1][j - 1], hRight[i - 1][j - 1],
-				huLeft[i - 1][j - 1], huRight[i - 1][j - 1],
-				maxEdgeSpeed
-			);
+#pragma omp parallel
+{
+	float t_maxEdgeSpeed;
 
-			t_maxEdgeSpeed = std::max(t_maxEdgeSpeed, maxEdgeSpeed);
+	#pragma omp for
+		for (int i = 1; i < nx+2; i++) {
+			for (int j=1; j < ny+1; j++) {
+				float maxEdgeSpeed;
+					fwave.computeNetUpdates (
+					h[i - 1][j], h[i][j],
+					hu[i - 1][j], hu[i][j],
+					b[i - 1][j], b[i][j],
+					hLeft[i - 1][j - 1], hRight[i - 1][j - 1],
+					huLeft[i - 1][j - 1], huRight[i - 1][j - 1],
+					maxEdgeSpeed
+				);
+
+				t_maxEdgeSpeed = std::max(t_maxEdgeSpeed, maxEdgeSpeed);
+			}
 		}
 
-		#pragma omp critical
-		{
-			maxWaveSpeed = std::max(maxWaveSpeed, t_maxEdgeSpeed);
-		}
-	}
+	maxWaveSpeed = std::max(maxWaveSpeed, t_maxEdgeSpeed);
+}
 
 
 	float dt;
@@ -77,29 +78,30 @@ void swe_dimensionalsplitting::computeNumericalFluxes(){
 
 
 //y-sweep (horizontal edges)
-#pragma omp parallel for
-	for (int i = 1; i < nx+1; i++) {
-		float t_maxEdgeSpeed;
-		for (int j=1; j < ny+2; ++j) {
-			float maxEdgeSpeed;
+#pragma omp parallel
+{
+	float t_maxEdgeSpeed;
 
-			fwave.computeNetUpdates (
-				h[i][j - 1], h[i][j],
-				hv[i][j - 1], hv[i][j],
-				b[i][j - 1], b[i][j],
-				hBelow[i - 1][j - 1], hAbove[i - 1][j - 1],
-				hvBelow[i - 1][j - 1], hvAbove[i - 1][j - 1],
-				maxEdgeSpeed
-			);
+	#pragma omp for
+		for (int i = 1; i < nx+1; i++) {
+			for (int j=1; j < ny+2; ++j) {
+				float maxEdgeSpeed;
 
-			t_maxEdgeSpeed = std::max(t_maxEdgeSpeed, maxEdgeSpeed);
+				fwave.computeNetUpdates (
+					h[i][j - 1], h[i][j],
+					hv[i][j - 1], hv[i][j],
+					b[i][j - 1], b[i][j],
+					hBelow[i - 1][j - 1], hAbove[i - 1][j - 1],
+					hvBelow[i - 1][j - 1], hvAbove[i - 1][j - 1],
+					maxEdgeSpeed
+				);
+
+				t_maxEdgeSpeed = std::max(t_maxEdgeSpeed, maxEdgeSpeed);
+			}
 		}
 
-		#pragma omp critical
-		{
-			maxWaveSpeed = std::max(maxWaveSpeed, t_maxEdgeSpeed);
-		}
-	}
+	maxWaveSpeed = std::max(maxWaveSpeed, t_maxEdgeSpeed);
+}
 
 
 #pragma omp parallel for
