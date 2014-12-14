@@ -14,6 +14,7 @@ optional arguments:
                               Number of seconds of simulation
   -b, --boundary-condition BOUNDARY_CONDITION
                               1: OUTFLOW ,2:WALL ,3:INFLOW, 4:CONNECT ,5:PASSIVE
+  -c, --specifies how much cells should be combined in the output file. The output file contains the dimension of ROUND_UP(x/c) x ROUND_UP(y/c)
 
 To switch scenario, edit the integer "switchScenario" in src/examples/swe_simple.cpp line 156.
 
