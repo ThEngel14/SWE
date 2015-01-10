@@ -66,6 +66,18 @@ private:
     /** Actual cell size */
     int ndX, ndY, ndX_extended, ndY_extended, ndX_single, ndY_single;
 
+    /** Number of stations */
+    int numStations;
+    /** Written timesteps for each station */
+    int timeStepStations;
+    /** Scenario for initial water heigth */
+    SWE_Scenario scenario;
+
+    /** Stations to measure data. The values are the indices of the matrix */
+    int *xStations, *yStations;
+    /** Stations to measure data. The values are absolute */
+    int *xStationsAbs, *yStationsAbs;
+
     /** Flush after every x write operation? */
     unsigned int flush;
 
@@ -80,9 +92,13 @@ private:
     // returns the average value
     float getAverage(const Float2D &matrix, int x_start, int y_start);
 
+    // registers the measuring stations
+    void registerStations(int nx, int ny, const float* i_boundaryPos);
+
 
   public:
     NetCdfWriter(const std::string &i_fileName,
+    			 const SWE_Scenario &l_scenario,
     			 const Float2D &i_b,
                  const BoundarySize &i_boundarySize,
                  const enum BoundaryType *i_boundaryType,
@@ -102,6 +118,11 @@ private:
                         const Float2D &i_hv,
                         float i_time);
 
+    // writes the unknows at a given time step to the stations netCDF-file.
+    void writeStationTimeStep(	const Float2D &i_h,
+    						  	const Float2D &i_hu,
+    						  	const Float2D &i_hv,
+    						  	float i_time);
   private:
     /**
      * This is a small wrapper for `nc_put_att_text` which automatically sets the length.

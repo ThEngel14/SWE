@@ -107,6 +107,20 @@ public:
             const Float2D &i_hu,
             const Float2D &i_hv,
             float i_time) = 0;
+
+	/**
+	 * Writes one time step for the registered stations
+	 *
+	 * @param i_h water heights at a given time step.
+	 * @param i_hu momentums in x-direction at a given time step.
+	 * @param i_hv momentums in y-direction at a given time step.
+	 * @param i_time simulation time of the time step.
+	 */
+	virtual void writeStationTimeStep(
+			const Float2D &i_h,
+			const Float2D &i_hu,
+			const Float2D &i_hv,
+			float i_time) = 0;
 };
 
 #endif // WRITER_HH_

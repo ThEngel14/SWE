@@ -28,11 +28,15 @@
 
 #include "NetCdfWriter.hh"
 #include <string>
+#include <sstream>
+#include <fstream>
 #include <vector>
 #include <iostream>
 #include <cassert>
+#include <stdlib.h>
 
 #define CHECKPOINT_FILE "_00.nc"
+#define STATION_FILE "stations.txt"
 
 /**
  * Create a netCdf-file
@@ -49,6 +53,7 @@
  * @param i_dynamicBathymetry
  */
 io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
+		const SWE_Scenario &l_scenario,
 		const Float2D &i_b,
 		const BoundarySize &i_boundarySize,
 		const enum BoundaryType *i_boundaryType,
@@ -66,6 +71,7 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 {
 
 	checkPoint = isCheckPoint;
+	scenario = l_scenario;
 
 	if(isCheckPoint) {
 		int status;
@@ -96,6 +102,8 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 		int status;
 
 		deltaX = delta;
+
+		registerStations(i_nX, i_nY, i_boundaryPos);
 
 		//create a netCDF-file, an existing file will be replaced
 		status = nc_create(fileName.c_str(), NC_NETCDF4, &dataFile);
@@ -235,6 +243,10 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
  */
 io::NetCdfWriter::~NetCdfWriter() {
 	nc_close(dataFile);
+	free(xStations);
+	free(yStations);
+	free(xStationsAbs);
+	free(yStationsAbs);
 }
 
 /**
@@ -319,13 +331,12 @@ float io::NetCdfWriter::getAverage(const Float2D &matrix, int x_start, int y_sta
 	float value = 0;
 	int cell_count = 0;
 
-	for(int i = x_start; i < x_start + ndX_single && i <= nX; i++) {
-		for(int k = y_start; k < y_start + ndY_single && k <= nY; k++) {
+	for(int i = x_start; i < x_start + deltaX && i <= nX; i++) {
+		for(int k = y_start; k < y_start + deltaX && k <= nY; k++) {
 			cell_count++;
 			value += matrix[i][k];
 		}
 	}
-
 
 	return value / cell_count;
 }
@@ -377,5 +388,155 @@ void io::NetCdfWriter::writeTimeStep( const Float2D &i_h,
 	if (flush > 0 && timeStep % flush == 0) {
 		nc_sync(dataFile);
 	}
+}
+
+/**
+ * Writes the unknwons to the stations netCDF-file
+ *
+ * @param i_h water heights at a given time step.
+ * @param i_hu momentums in x-direction at a given time step.
+ * @param i_hv momentums in y-direction at a given time step.
+ * @param i_time simulation time of the time step.
+ */
+void io::NetCdfWriter::writeStationTimeStep( const Float2D &i_h,
+                                      const Float2D &i_hu,
+                                      const Float2D &i_hv,
+                                      float i_time) {
+	int i;
+	for(int i = 0; i < numStations; i++) {
+		int x,y;
+		x = xStations[i];
+		y = yStations[i];
+
+		if(x < 0 || y < 0)
+			continue;
+
+		int status;
+		int file;
+		std::stringstream ss;
+		ss << "_Station_" << xStationsAbs[i] << "_" << yStationsAbs[i] << ".nc";
+		std::string filename = ss.str();
+
+		status = nc_open(filename.c_str(), NC_WRITE, &file);
+		if (status != NC_NOERR) {
+			assert(false);
+			return;
+		}
+
+		//write data
+		size_t count = timeStepStations;
+
+		int vart;
+		nc_inq_varid(file, "time", &vart);
+		nc_put_var1_float(file, vart, &count, &i_time);
+
+		nc_inq_varid(file, "t", &vart);
+		nc_put_var1_float(file, vart, &count, &i_time);
+
+		float water = i_h[x][y] - scenario.getWaterHeight(xStationsAbs[i], yStationsAbs[i]);
+		int varh;
+		nc_inq_varid(file, "h", &varh);
+		nc_put_var1_float(file, varh, &count, &water);
+
+		int varhu;
+		nc_inq_varid(file, "hu", &varhu);
+		nc_put_var1_float(file, varhu, &count, &i_hu[x][y]);
+
+		int varhv;
+		nc_inq_varid(file, "hv", &varhv);
+		nc_put_var1_float(file, varhv, &count, &i_hv[x][y]);
+
+		nc_sync(file);
+
+		//close file
+		nc_close(file);
+	}
+
+	timeStepStations++;
+}
+
+/**
+ * Registers the stations to measure data at these points
+ */
+void io::NetCdfWriter::registerStations(int nx, int ny, const float* i_boundaryPos) {
+	std::string line;
+	std::ifstream inputFile (STATION_FILE);
+	  if (inputFile.is_open())
+	  {
+		  // get number of stations
+		  getline(inputFile, line);
+		  numStations = atoi(line.c_str());
+		  xStations = (int*) malloc(numStations*sizeof(int));
+		  yStations = (int*) malloc(numStations*sizeof(int));
+
+		  xStationsAbs = (int*) malloc(numStations*sizeof(int));
+		  yStationsAbs = (int*) malloc(numStations*sizeof(int));
+
+		  printf("#Stations: %d\n", numStations);
+
+		  int counter;
+		  // get station coordinates
+		  for(counter = 0; counter < numStations; counter++)
+		  {
+			  getline (inputFile,line);
+
+			  std::string::size_type whitespace = line.find(' ');
+			  if(whitespace == std::string::npos) {
+				  xStations[counter] = -1;
+				  yStations[counter] = -1;
+			  } else {
+				  int x = atoi(line.substr(0, whitespace).c_str());
+				  int y = atoi(line.substr(whitespace+1).c_str());
+
+				  xStationsAbs[counter] = x;
+				  yStationsAbs[counter] = y;
+
+				  int xPos = (int) (((x-i_boundaryPos[2])*nx)/(i_boundaryPos[3] - i_boundaryPos[2]));
+				  int yPos = (int) (((y-i_boundaryPos[1])*ny)/(i_boundaryPos[0] - i_boundaryPos[1]));
+
+				  xStations[counter] = xPos;
+				  yStations[counter] = yPos;
+
+				  printf("Register Station at x: %d  y: %d\n", xStations[counter], yStations[counter]);
+
+				  int file;
+				  std::stringstream ss;
+				  ss << "_Station_" << x << "_" << y << ".nc";
+				  std::string filename = ss.str();
+
+				  int status = nc_create(filename.c_str(), NC_NETCDF4, &file);
+
+				  //check if the netCDF-file creation constructor succeeded.
+				  if (status != NC_NOERR) {
+					  assert(false);
+					  return;
+				  }
+
+				  //write header
+				  int l_timeDim, timeVar, l_temp;
+				  nc_def_dim(file, "time", NC_UNLIMITED, &l_timeDim);
+				  nc_def_var(file, "time", NC_FLOAT, 1, &l_timeDim, &timeVar);
+				  //ncPutAttText(timeVar, "long_name", "Time");
+				  //ncPutAttText(timeVar, "units", "seconds since simulation start"); // the word "since" is important for the paraview reader
+
+				  nc_def_dim(file, "x_abs", x, &l_temp);
+				  nc_def_dim(file, "y_abs", y, &l_temp);
+				  nc_def_dim(file, "x", xPos, &l_temp);
+				  nc_def_dim(file, "y", yPos, &l_temp);
+
+				  int dims[] = {l_timeDim};
+				  nc_def_var(file, "t",  NC_FLOAT, 1, dims, &l_temp);
+				  nc_def_var(file, "h",  NC_FLOAT, 1, dims, &l_temp);
+				  nc_def_var(file, "hu", NC_FLOAT, 1, dims, &l_temp);
+				  nc_def_var(file, "hv", NC_FLOAT, 1, dims, &l_temp);
+
+				  //close file
+				  status = nc_close(file);
+			  }
+		  }
+		  inputFile.close();
+
+		  timeStepStations = 0;
+	  }
 }
 

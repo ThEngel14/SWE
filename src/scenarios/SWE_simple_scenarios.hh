@@ -66,8 +66,8 @@ class SWE_RadialDamBreakScenario : public SWE_Scenario {
 	 *
 	 * @return water height (before the initial displacement)
 	 */
-    float getWaterHeight(float x, float y) { 
-       return ( sqrt( (x-500.f)*(x-500.f) + (y-500.f)*(y-500.f) ) < 100.f ) ? 15.f: 10.0f;
+    float getWaterHeight(float x, float y) {
+        return ( sqrt( (x-500.f)*(x-500.f) + (y-500.f)*(y-500.f) ) < 100.f ) ? 15.f: 10.0f;
     };
 
 	virtual float endSimulation() { return (float) 15; };

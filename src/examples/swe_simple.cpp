@@ -125,7 +125,7 @@ int main( int argc, char** argv ) {
   l_dimensionalsplitting.initScenario(l_originX, l_originY, l_scenario);
 
   //! number of checkpoints for visualization (at each checkpoint in time, an output file is written).
-    int l_numberOfCheckPoints = 20;
+    int l_numberOfCheckPoints = 100;
     if(isCheckpointScenario) {
     	/*
     	cout << "Calculated Steps: " << l_scenario.calculatedSteps() << endl;
@@ -188,6 +188,7 @@ int main( int argc, char** argv ) {
 #ifdef WRITENETCDF
   //construct a NetCdfWriter
   io::NetCdfWriter l_writer( l_fileName,
+		  l_scenario,
 		  l_dimensionalsplitting.getBathymetry(),
 		  l_boundarySize,
 		  l_boundaryType,
@@ -215,6 +216,10 @@ int main( int argc, char** argv ) {
                           l_dimensionalsplitting.getDischarge_hu(),
                           l_dimensionalsplitting.getDischarge_hv(),
                           (float) 0.);
+  l_writer.writeStationTimeStep(l_dimensionalsplitting.getWaterHeight(),
+                          	    l_dimensionalsplitting.getDischarge_hu(),
+                          	    l_dimensionalsplitting.getDischarge_hv(),
+                          	    (float) 0.);
   }
 
   /**
@@ -270,6 +275,11 @@ int main( int argc, char** argv ) {
       // update simulation time with time step width.
       l_t += l_maxTimeStepWidth;
       l_iterations++;
+
+      l_writer.writeStationTimeStep(l_dimensionalsplitting.getWaterHeight(),
+                    	  	  	  	  	    l_dimensionalsplitting.getDischarge_hu(),
+                    	  	  	  	  	    l_dimensionalsplitting.getDischarge_hv(),
+                    	  	  	  	  	    l_t);
 
       // print the current simulation time
       progressBar.clear();
