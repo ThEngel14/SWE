@@ -18,8 +18,10 @@
 //#define DISPFILE "NCScenario/artificialtsunami_displ_1000.nc"
 //#define BATHFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_bath.nc"
 //#define DISPFILE "NCScenario/chile2010/chile_gebco_usgs_2000m_displ.nc"
-#define BATHFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_bath.nc"
-#define DISPFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_displ.nc"
+//#define BATHFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_bath.nc"
+//#define DISPFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_displ.nc"
+#define BATHFILE "NCScenario/sumatra2004/sumatra_gebco_1000m_bath.nc"
+#define DISPFILE "NCScenario/sumatra2004/sumatra_gebco_1000m_displ.nc"
 
 class SWE_TsunamiScenario: public SWE_Scenario {
 private:
@@ -47,6 +49,8 @@ private:
 	float yBathMinValue;
 	float xDisplMinValue;
 	float yDisplMinValue;
+
+	float scaleFactor;
 
 	float *xBathVals;
 	float *yBathVals;
@@ -187,7 +191,7 @@ private:
 		if(x  >= xDisplMinValue && x <= xDisplMaxValue
 				&& y >= yDisplMinValue && y <= yDisplMaxValue){ //true if x and y are in the displ.-rect
 			Position posDisp = getClosestPosition(x,y,DISPLACEMENT);
-			return zDisplVals[ posDisp.y * xDisplSize + posDisp.x] ;
+			return scaleFactor*zDisplVals[ posDisp.y * xDisplSize + posDisp.x] ;
 		}
 		return 0.0f;
 	}
@@ -208,8 +212,9 @@ public:
 	/**
 	 * Open and preparing a set of nc-files for bathymetry and displacement data.
 	 */
-	SWE_TsunamiScenario()
+	SWE_TsunamiScenario(float scale)
 	{
+		scaleFactor = scale;
 
 		int ncBathid;
 		openNetcdf(BATHFILE,&ncBathid, &xBathSize, &yBathSize);

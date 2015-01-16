@@ -243,10 +243,6 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
  */
 io::NetCdfWriter::~NetCdfWriter() {
 	nc_close(dataFile);
-	free(xStations);
-	free(yStations);
-	free(xStationsAbs);
-	free(yStationsAbs);
 }
 
 /**
@@ -466,6 +462,10 @@ void io::NetCdfWriter::registerStations(int nx, int ny, const float* i_boundaryP
 		  // get number of stations
 		  getline(inputFile, line);
 		  numStations = atoi(line.c_str());
+		  if(numStations < 0) {
+			  numStations = 0;
+		  }
+
 		  xStations = (int*) malloc(numStations*sizeof(int));
 		  yStations = (int*) malloc(numStations*sizeof(int));
 
@@ -488,7 +488,13 @@ void io::NetCdfWriter::registerStations(int nx, int ny, const float* i_boundaryP
 				  int x = atoi(line.substr(0, whitespace).c_str());
 				  int y = atoi(line.substr(whitespace+1).c_str());
 
+				  // make sure that stations are into the boundary
+				  x = std::min(x, (int) i_boundaryPos[3]);
+				  x = std::max(x, (int) i_boundaryPos[2]);
 				  xStationsAbs[counter] = x;
+
+				  y = std::min(y, (int) i_boundaryPos[0]);
+				  y = std::max(y, (int) i_boundaryPos[1]);
 				  yStationsAbs[counter] = y;
 
 				  int xPos = (int) (((x-i_boundaryPos[2])*nx)/(i_boundaryPos[3] - i_boundaryPos[2]));

@@ -45,7 +45,8 @@ int main( int argc, char** argv ) {
   args.addOption("output-basepath", 'o', "Output base file name");
   args.addOption("scenario", 's', "0: TsunamiScenario, 1: CheckPointsScenario ,2: ArtificialTsunamiScenario ,3:RadialDambreakScenario", args.Required, false);
   args.addOption("cell-size", 'c', "Number of cells that should be combined in the output", args.Required, false);
-
+  args.addOption("displacement-scale-factor", 'f', "Percent of the used displacement defined in the input file. Note: This only works in a TsunamiScenario", args.Required, false);
+  args.addOption("checkpoints", 'p', "Number of timesteps that should be written into the nc-file", args.Required, false);
 
   tools::Args::Result ret = args.parse(argc, argv);
 
@@ -71,6 +72,8 @@ int main( int argc, char** argv ) {
   int l_delta = args.getArgument<int>("cell-size", 1);
 
 
+  //float scaleFactor = args.getArgument<float>("displacement-scale-factor", 100) / 100.0;
+
   SWE_Scenario *s;
 
 
@@ -84,7 +87,7 @@ int main( int argc, char** argv ) {
   case 3:{
 	  s = new SWE_RadialDamBreakScenario;}break;
   default:
-	  s = new SWE_TsunamiScenario;
+	  s = new SWE_TsunamiScenario(1);
   }
 
  SWE_Scenario &l_scenario = *s;
@@ -125,7 +128,7 @@ int main( int argc, char** argv ) {
   l_dimensionalsplitting.initScenario(l_originX, l_originY, l_scenario);
 
   //! number of checkpoints for visualization (at each checkpoint in time, an output file is written).
-    int l_numberOfCheckPoints = 100;
+    int l_numberOfCheckPoints = args.getArgument<int>("checkpoints", 20);
     if(isCheckpointScenario) {
     	/*
     	cout << "Calculated Steps: " << l_scenario.calculatedSteps() << endl;
