@@ -246,7 +246,7 @@ public:
 	 * @param y y-position of the point
 	 * @return wather height at the point (x,y)
 	 */
-	float getWaterHeight(float x, float y){
+	virtual float getWaterHeight(float x, float y){
 		float bath = getBathymetryBefore(x,y);
 		float absBath = std::fabs(bath);
 		if( absBath < 20.0f){

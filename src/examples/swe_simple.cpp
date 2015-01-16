@@ -191,7 +191,7 @@ int main( int argc, char** argv ) {
 #ifdef WRITENETCDF
   //construct a NetCdfWriter
   io::NetCdfWriter l_writer( l_fileName,
-		  l_scenario,
+		  l_dimensionalsplitting.getWaterHeight(),
 		  l_dimensionalsplitting.getBathymetry(),
 		  l_boundarySize,
 		  l_boundaryType,

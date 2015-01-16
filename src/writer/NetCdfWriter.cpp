@@ -102,7 +102,7 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 
 		deltaX = delta;
 
-		registerStations(i_nX, i_nY, i_boundaryPos);
+		registerStations(i_nX, i_nY, i_boundaryPos, init_h);
 
 		//create a netCDF-file, an existing file will be replaced
 		status = nc_create(fileName.c_str(), NC_NETCDF4, &dataFile);
@@ -445,7 +445,7 @@ void io::NetCdfWriter::writeStationTimeStep( const Float2D &i_h,
 		nc_inq_varid(file, "t", &vart);
 		nc_put_var1_float(file, vart, &count, &i_time);
 
-		float water = i_h[x][y];
+		float water = i_h[x][y] - initial_h[i];
 		int varh;
 		nc_inq_varid(file, "h", &varh);
 		nc_put_var1_float(file, varh, &count, &water);
@@ -470,7 +470,7 @@ void io::NetCdfWriter::writeStationTimeStep( const Float2D &i_h,
 /**
  * Registers the stations to measure data at these points
  */
-void io::NetCdfWriter::registerStations(int nx, int ny, const float* i_boundaryPos) {
+void io::NetCdfWriter::registerStations(int nx, int ny, const float* i_boundaryPos, const Float2D &init_h) {
 	std::string line;
 	std::ifstream inputFile (STATION_FILE);
 	  if (inputFile.is_open())
@@ -487,6 +487,8 @@ void io::NetCdfWriter::registerStations(int nx, int ny, const float* i_boundaryP
 
 		  xStationsAbs = (int*) malloc(numStations*sizeof(int));
 		  yStationsAbs = (int*) malloc(numStations*sizeof(int));
+
+		  initial_h = (float*) malloc(numStations*sizeof(float));
 
 		  printf("#Stations: %d\n", numStations);
 
@@ -518,6 +520,8 @@ void io::NetCdfWriter::registerStations(int nx, int ny, const float* i_boundaryP
 
 				  xStations[counter] = xPos;
 				  yStations[counter] = yPos;
+
+				  initial_h[counter] = init_h[xPos][yPos];
 
 				  printf("Register Station at x: %d  y: %d\n", xStations[counter], yStations[counter]);
 

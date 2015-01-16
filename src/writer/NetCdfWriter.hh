@@ -70,6 +70,8 @@ private:
     int numStations;
     /** Written timesteps for each station */
     int timeStepStations;
+    /** For initial water height */
+    float *initial_h;
 
     /** Stations to measure data. The values are the indices of the matrix */
     int *xStations, *yStations;
@@ -91,7 +93,7 @@ private:
     float getAverage(const Float2D &matrix, int x_start, int y_start);
 
     // registers the measuring stations
-    void registerStations(int nx, int ny, const float* i_boundaryPos);
+    void registerStations(int nx, int ny, const float* i_boundaryPos, const Float2D &init_h);
 
 
   public:
