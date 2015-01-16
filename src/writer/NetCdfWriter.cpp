@@ -53,7 +53,7 @@
  * @param i_dynamicBathymetry
  */
 io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
-		const SWE_Scenario &l_scenario,
+		const Float2D &init_h,
 		const Float2D &i_b,
 		const BoundarySize &i_boundarySize,
 		const enum BoundaryType *i_boundaryType,
@@ -71,7 +71,6 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 {
 
 	checkPoint = isCheckPoint;
-	scenario = l_scenario;
 
 	if(isCheckPoint) {
 		int status;
@@ -159,6 +158,7 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 		nc_def_var(dataFile, "hu", NC_FLOAT, 3, dims, &huVar);
 		nc_def_var(dataFile, "hv", NC_FLOAT, 3, dims, &hvVar);
 		nc_def_var(dataFile, "b",  NC_FLOAT, 2, &dims[1], &bVar);
+		nc_def_var(dataFile, "s", NC_FLOAT, 2, &dims[1], &sVar);
 		nc_def_var(dataFile, "Boundary", NC_INT, 1, boundarydim, &boundaryVar);
 		nc_def_var(dataFile, "BoundaryPos", NC_FLOAT, 1,boundaryPosdim, &boundaryPosVar);
 		nc_def_var(dataFile, "EndSimulation", NC_FLOAT, 1, esdim, &endSimulationVar);
@@ -358,6 +358,22 @@ void io::NetCdfWriter::writeTimeStep( const Float2D &i_h,
 	if (timeStep == 0 && !checkPoint) {
 		// Write bathymetry
 		writeVarTimeIndependent(b, bVar);
+
+		Float2D sMatrix(nX, nY);
+		for(int i = 0; i < numStations; i++) {
+			int dif = 2;
+			for(int x = xStations[i]-dif; x < xStations[i]+dif; x++) {
+				for(int y = yStations[i]-dif; y < yStations[i]+dif; y++) {
+					if(x < 0 || nX <= x || y < 0 || nY <= y) {
+						continue;
+					}
+
+					sMatrix[x][y] = deltaX*deltaX;
+				}
+			}
+		}
+
+		writeVarTimeIndependent(sMatrix, sVar);
 	}
 
 	/*
@@ -429,7 +445,7 @@ void io::NetCdfWriter::writeStationTimeStep( const Float2D &i_h,
 		nc_inq_varid(file, "t", &vart);
 		nc_put_var1_float(file, vart, &count, &i_time);
 
-		float water = i_h[x][y] - scenario.getWaterHeight(xStationsAbs[i], yStationsAbs[i]);
+		float water = i_h[x][y];
 		int varh;
 		nc_inq_varid(file, "h", &varh);
 		nc_put_var1_float(file, varh, &count, &water);

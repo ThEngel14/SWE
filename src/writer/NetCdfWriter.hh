@@ -60,7 +60,7 @@ private:
     bool checkPoint;
 
     /** Variable ids */
-    int timeVar, hVar, huVar, hvVar, bVar, boundaryVar, boundaryPosVar, endSimulationVar;
+    int timeVar, hVar, huVar, hvVar, bVar, sVar, boundaryVar, boundaryPosVar, endSimulationVar;
     /** X for averaging outputs */
     int deltaX;
     /** Actual cell size */
@@ -70,8 +70,6 @@ private:
     int numStations;
     /** Written timesteps for each station */
     int timeStepStations;
-    /** Scenario for initial water heigth */
-    SWE_Scenario scenario;
 
     /** Stations to measure data. The values are the indices of the matrix */
     int *xStations, *yStations;
@@ -98,7 +96,7 @@ private:
 
   public:
     NetCdfWriter(const std::string &i_fileName,
-    			 const SWE_Scenario &l_scenario,
+    			 const Float2D &init_h,
     			 const Float2D &i_b,
                  const BoundarySize &i_boundarySize,
                  const enum BoundaryType *i_boundaryType,
