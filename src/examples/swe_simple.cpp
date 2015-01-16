@@ -47,6 +47,7 @@ int main( int argc, char** argv ) {
   args.addOption("cell-size", 'c', "Number of cells that should be combined in the output", args.Required, false);
   args.addOption("displacement-scale-factor", 'f', "Percent of the used displacement defined in the input file. Note: This only works in a TsunamiScenario", args.Required, false);
   args.addOption("checkpoints", 'p', "Number of timesteps that should be written into the nc-file", args.Required, false);
+  args.addOption("station-checkpoints", 'v', "Number of timesteps that should be written into the stations file", args.Required, false);
 
   tools::Args::Result ret = args.parse(argc, argv);
 
@@ -137,6 +138,8 @@ int main( int argc, char** argv ) {
     	*/
   	    l_numberOfCheckPoints = (int) ((l_time - l_scenario.continueSimulationAt())*(l_scenario.calculatedSteps()/l_scenario.continueSimulationAt()));
     }
+
+    int l_numberOfStationCheckPoints = args.getArgument<int>("station-checkpoints", 20);
 
   //! checkpoints when output files are written.
   float* l_checkPoints = new float[l_numberOfCheckPoints+1];
@@ -279,10 +282,12 @@ int main( int argc, char** argv ) {
       l_t += l_maxTimeStepWidth;
       l_iterations++;
 
-      l_writer.writeStationTimeStep(l_dimensionalsplitting.getWaterHeight(),
+      if(l_iterations % l_numberOfStationCheckPoints == 0) {
+    	  l_writer.writeStationTimeStep(l_dimensionalsplitting.getWaterHeight(),
                     	  	  	  	  	    l_dimensionalsplitting.getDischarge_hu(),
                     	  	  	  	  	    l_dimensionalsplitting.getDischarge_hv(),
                     	  	  	  	  	    l_t);
+      }
 
       // print the current simulation time
       progressBar.clear();
