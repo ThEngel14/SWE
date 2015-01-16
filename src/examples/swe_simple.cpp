@@ -72,7 +72,7 @@ int main( int argc, char** argv ) {
   int l_delta = args.getArgument<int>("cell-size", 1);
 
 
-  //float scaleFactor = args.getArgument<float>("displacement-scale-factor", 100) / 100.0;
+  float scaleFactor = args.getArgument<float>("displacement-scale-factor", 100) / 100.0;
 
   SWE_Scenario *s;
 
@@ -87,7 +87,7 @@ int main( int argc, char** argv ) {
   case 3:{
 	  s = new SWE_RadialDamBreakScenario;}break;
   default:
-	  s = new SWE_TsunamiScenario(1);
+	  s = new SWE_TsunamiScenario(scaleFactor);
   }
 
  SWE_Scenario &l_scenario = *s;
