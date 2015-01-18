@@ -209,6 +209,10 @@ private:
 		return bath;
 	}
 
+	bool isNegative(float x)
+	{
+	    return x<0.0f;
+	}
 public:
 	/**
 	 * Open and preparing a set of nc-files for bathymetry and displacement data.
@@ -263,14 +267,22 @@ public:
 	 * @return bathymetry + displacement at the point (x,y)
 	 */
 	float getBathymetry(float x, float y){
-		float bath = getBathymetryBefore(x,y) + computeDisplacement(x,y);
-
-		float absBath = std::fabs(bath);
-		if( absBath < 20.0f){
-			bath = bath / absBath * 20.0f;
+		float bath = getBathymetryBefore(x,y);
+		float displ = computeDisplacement(x,y);
+		if(isNegative(bath) && !isNegative(bath + displ)){
+			bath=-20.0f;
+		}else if(!isNegative(bath) && isNegative(bath + displ)){
+			bath=20.0f;
+		}else{
+			bath +=displ;
+			float absBath = std::fabs(bath);
+			if( absBath < 20.0f){
+				bath = bath / absBath * 20.0f;
+			}
 		}
 		return bath;
 	};
+
 
 	virtual float endSimulation() { return (float) 15; };
 
