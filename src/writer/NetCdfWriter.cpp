@@ -545,10 +545,10 @@ void io::NetCdfWriter::registerStations(int nx, int ny, const float* i_boundaryP
 				  //ncPutAttText(timeVar, "long_name", "Time");
 				  //ncPutAttText(timeVar, "units", "seconds since simulation start"); // the word "since" is important for the paraview reader
 
-				  nc_def_dim(file, "x_abs", x, &l_temp);
-				  nc_def_dim(file, "y_abs", y, &l_temp);
-				  nc_def_dim(file, "x", xPos, &l_temp);
-				  nc_def_dim(file, "y", yPos, &l_temp);
+				  //nc_def_dim(file, "x_abs", x, &l_temp);
+				  //nc_def_dim(file, "y_abs", y, &l_temp);
+				  //nc_def_dim(file, "x", xPos, &l_temp);
+				  //nc_def_dim(file, "y", yPos, &l_temp);
 
 				  int dims[] = {l_timeDim};
 				  nc_def_var(file, "t",  NC_FLOAT, 1, dims, &l_temp);

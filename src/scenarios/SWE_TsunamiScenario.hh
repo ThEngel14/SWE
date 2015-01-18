@@ -22,6 +22,7 @@
 //#define DISPFILE "NCScenario/tohoku2011/tohoku_gebco_ucsb3_2000m_hawaii_displ.nc"
 #define BATHFILE "NCScenario/sumatra2004/sumatra_gebco_1000m_bath.nc"
 #define DISPFILE "NCScenario/sumatra2004/sumatra_gebco_1000m_displ.nc"
+//#define DISPFILE "NCScenario/sumatra2004/sumatra_3.nc"
 
 class SWE_TsunamiScenario: public SWE_Scenario {
 private:
