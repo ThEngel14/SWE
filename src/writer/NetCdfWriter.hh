@@ -66,6 +66,9 @@ private:
     /** Actual cell size */
     int ndX, ndY, ndX_extended, ndY_extended, ndX_single, ndY_single;
 
+    /** Base name for naming the station files */
+    std::string basefile_name;
+
     /** Number of stations */
     int numStations;
     /** Written timesteps for each station */
@@ -105,6 +108,7 @@ private:
                  const float *i_boundaryPos,
                  const float endSimulation,
                  bool isCheckPoint,
+                 bool isStations,
                  int delta,
                  int i_nX, int i_nY,
                  float i_dX, float i_dY,

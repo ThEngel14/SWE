@@ -44,10 +44,10 @@ int main( int argc, char** argv ) {
   args.addOption("boundary-condition", 'b', "0: OUTFLOW ,1:WALL ,2:INFLOW, 3:CONNECT ,4:PASSIVE", args.Required, false);
   args.addOption("output-basepath", 'o', "Output base file name");
   args.addOption("scenario", 's', "0: TsunamiScenario, 1: CheckPointsScenario ,2: ArtificialTsunamiScenario ,3:RadialDambreakScenario", args.Required, false);
-  args.addOption("cell-size", 'c', "Number of cells that should be combined in the output", args.Required, false);
-  args.addOption("displacement-scale-factor", 'f', "Percent of the used displacement defined in the input file. Note: This only works in a TsunamiScenario", args.Required, false);
-  args.addOption("checkpoints", 'p', "Number of timesteps that should be written into the nc-file", args.Required, false);
-  args.addOption("station-checkpoints", 'v', "Number of timesteps that should be written into the stations file", args.Required, false);
+  args.addOption("cell-size", 'c', "Number of cells that should be combined in the output. Default value: 1", args.Required, false);
+  args.addOption("displacement-scale-factor", 'f', "Percent of the used displacement defined in the input file. Note: This only works in a TsunamiScenario. Default value: 100", args.Required, false);
+  args.addOption("checkpoints", 'p', "Number of timesteps that should be written into the nc-file. Must be greater than zero. Default value: 20", args.Required, false);
+  args.addOption("station-checkpoints", 'v', "If a station file exists, each v-th calculated step is written into the files. If v <= 0, no station will be registered. Defalut value: 1", args.Required, false);
 
   tools::Args::Result ret = args.parse(argc, argv);
 
@@ -130,6 +130,7 @@ int main( int argc, char** argv ) {
 
   //! number of checkpoints for visualization (at each checkpoint in time, an output file is written).
     int l_numberOfCheckPoints = args.getArgument<int>("checkpoints", 20);
+    l_numberOfCheckPoints = std::max(l_numberOfCheckPoints, 1);
     if(isCheckpointScenario) {
     	/*
     	cout << "Calculated Steps: " << l_scenario.calculatedSteps() << endl;
@@ -139,7 +140,8 @@ int main( int argc, char** argv ) {
   	    l_numberOfCheckPoints = (int) ((l_time - l_scenario.continueSimulationAt())*(l_scenario.calculatedSteps()/l_scenario.continueSimulationAt()));
     }
 
-    int l_numberOfStationCheckPoints = args.getArgument<int>("station-checkpoints", 20);
+    int l_numberOfStationCheckPoints = args.getArgument<int>("station-checkpoints", 1);
+    bool isStations = l_numberOfStationCheckPoints > 0;
 
   //! checkpoints when output files are written.
   float* l_checkPoints = new float[l_numberOfCheckPoints+1];
@@ -201,6 +203,7 @@ int main( int argc, char** argv ) {
 		  l_boundaryPos,
 		  l_time,
 		  isCheckpointScenario,
+		  isStations,
 		  l_delta,
 		  l_nX, l_nY,
 		  l_dX, l_dY,
@@ -282,7 +285,7 @@ int main( int argc, char** argv ) {
       l_t += l_maxTimeStepWidth;
       l_iterations++;
 
-      if(l_iterations % l_numberOfStationCheckPoints == 0) {
+      if(isStations && l_iterations % l_numberOfStationCheckPoints == 0) {
     	  l_writer.writeStationTimeStep(l_dimensionalsplitting.getWaterHeight(),
                     	  	  	  	  	    l_dimensionalsplitting.getDischarge_hu(),
                     	  	  	  	  	    l_dimensionalsplitting.getDischarge_hv(),

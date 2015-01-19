@@ -60,6 +60,7 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 		const float *i_boundaryPos,
 		const float endSimulation,
 		bool isCheckPoint,
+		bool isStations,
 		int delta,
 		int i_nX, int i_nY,
 		float i_dX, float i_dY,
@@ -100,9 +101,14 @@ io::NetCdfWriter::NetCdfWriter( const std::string &i_baseName,
 	} else {
 		int status;
 
+		basefile_name = i_baseName;
 		deltaX = delta;
 
-		registerStations(i_nX, i_nY, i_boundaryPos, init_h);
+		if(isStations) {
+			registerStations(i_nX, i_nY, i_boundaryPos, init_h);
+		} else {
+			numStations = 0;
+		}
 
 		//create a netCDF-file, an existing file will be replaced
 		status = nc_create(fileName.c_str(), NC_NETCDF4, &dataFile);
@@ -426,7 +432,7 @@ void io::NetCdfWriter::writeStationTimeStep( const Float2D &i_h,
 		int status;
 		int file;
 		std::stringstream ss;
-		ss << "_Station_" << xStationsAbs[i] << "_" << yStationsAbs[i] << ".nc";
+		ss << basefile_name << "_Station_" << xStationsAbs[i] << "_" << yStationsAbs[i] << ".nc";
 		std::string filename = ss.str();
 
 		status = nc_open(filename.c_str(), NC_WRITE, &file);
@@ -527,7 +533,7 @@ void io::NetCdfWriter::registerStations(int nx, int ny, const float* i_boundaryP
 
 				  int file;
 				  std::stringstream ss;
-				  ss << "_Station_" << x << "_" << y << ".nc";
+				  ss << basefile_name << "_Station_" << x << "_" << y << ".nc";
 				  std::string filename = ss.str();
 
 				  int status = nc_create(filename.c_str(), NC_NETCDF4, &file);
