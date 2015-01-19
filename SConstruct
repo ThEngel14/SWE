@@ -128,7 +128,7 @@ vars.AddVariables(
 )
 
 # set environment
- env = Environment(ENV = {'PATH': os.environ['PATH'], 'INTEL_LICENSE_FILE': os.environ['INTEL_LICENSE_FILE'] }, variables=vars)
+env = Environment(ENV = {'PATH': os.environ['PATH'], 'INTEL_LICENSE_FILE': os.environ['INTEL_LICENSE_FILE'] }, variables=vars)
 # env = Environment(ENV = {'PATH': os.environ['PATH']}, variables=vars)
        
 # generate help text
