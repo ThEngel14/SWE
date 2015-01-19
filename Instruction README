@@ -1,0 +1,32 @@
+Compile the code:
+- adapt the SConstruct-file (currently it works on the cluster. This is needed because of some licenses and library issues)
+- compile with: scons
+
+Run the simulation:
+- navigate to folder: build (cd build)
+- see ./SWE_... -h for required and optional parameters
+- run simulation as described in the help (example: ./SWE_gnu_release_none_fwave -x 100 -y 100 -s 3 -t 90 -o output)
+
+Introduction of measure stations:
+- You can specify certain spots in the simulated area in order to measure the derivation of the water height and the momentums hu and hv (see next point for information how to use these)
+Note:
+	> If the station is not inside of the simulated area, the corresponding boundary coordinate is used
+	> If the number of stations is negative, no stations are registered
+	> The time is written twice into the nc-file. This is needed because otherwise you can not have the time as x-achses
+	> The main nc-file of the simulation will have a field s which will be positive if a stations is registered within this location
+
+Use stations to measure h, hu and hv at specified spots:
+- create a file stations.txt in the same folder with the following structure:
+	> Line 1: Number of stations (n >= 0)
+	> Next n-lines: Coordinates of the station separated by whitespace (example: x-Coordinate y-Coordinate)
+- Use optional parameter v in order to specifiy which steps should be written into the created files
+  Note: You can also switch the stations off by setting the parameter v to zero
+- run the simulation
+
+Example for station.txt (works for the example described in "Run the simulation"):
+2
+100 100
+300 300
+
+
+
